@@ -1,11 +1,11 @@
 10
-ls
+pwd
 exit
-exit
-ls
-cd 'k k'
-exit
-cd 'k k'
-exit
-cd 'k k'
-exit
+cd abc
+history
+pwd
+cd ..
+cd Shel
+cd shell
+cd Shell/
+pwd
