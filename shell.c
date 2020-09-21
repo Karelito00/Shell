@@ -372,7 +372,7 @@ int main(){
        	int count_comm = Parse_For_Pipes(array_comm, &line);
         if(strcmp(line.command, "cd") == 0){
             int success = chdir(array_comm[0].args[1]);
-            printf("%s\n", array_comm[0].args[1]);
+            //printf("%s\n", array_comm[0].args[1]); //no es necesario imprimir nada
             if(success != 0)
             	printf("No such file or directory\n");
         }
