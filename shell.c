@@ -85,10 +85,12 @@ void Parse_to_command(char **tokens, int count_tokens, Commands *command){
     command->count_arg++;
 }
 
+const int TAM_HIST = 20;
+
 void save_history(char *line){
     FILE *file_h = fopen(path_initial, "a+");
     int lines = 0;
-    char *hist = malloc(12 * 100);
+    char *hist = malloc((TAM_HIST + 2) * 100);
     char *lh = malloc(100);
     int tot = 0;
     int cant;
@@ -96,7 +98,7 @@ void save_history(char *line){
     fgets(lh, 100, file_h);
     for(int j = 0; j < cant; j++){
         fgets(lh, 100, file_h);
-        if(cant == 10 && j == 0) continue;
+        if(cant == TAM_HIST && j == 0) continue;
         for(int i = 0; i < 100; i++){
             hist[tot] = lh[i];
             tot++;
@@ -104,6 +106,10 @@ void save_history(char *line){
         }
         lines++;
     }
+    //last command duplicate
+    if(strcmp(line,lh) == 0)
+        return;
+
     for(int i = 0; i < 100; i++){
         hist[tot] = line[i];
         tot++;
@@ -111,7 +117,7 @@ void save_history(char *line){
     }
     fclose(file_h);
     file_h = fopen(path_initial, "w");
-    fprintf(file_h, "%d\n", min(lines + 1, 10));
+    fprintf(file_h, "%d\n", min(lines + 1, TAM_HIST));
     fputs(hist, file_h);
     fclose(file_h);
 }
@@ -141,14 +147,18 @@ void Parse_Line(Parse *line, char *rd){
     		break;
     	}
     }
-    while(spaces_ < 100 && rd[spaces_] == ' ')
+    while(spaces_ < tam && rd[spaces_] == ' ')
         spaces_++;
+    if(spaces_ < tam && rd[spaces_] == '#'){
+        line->command[0] = 0;
+        return;
+    }        
     int t = 0;
     for(int i = spaces_; i < tam; i++){
-        if(rd[i] == ' ' || rd[i] == '\n' || rd[i] == '#'){
+        if(rd[i] == ' ' || rd[i] == '\n'){
             t = i + 1;
             line->command[line->size_command] = 0;
-            break;         
+            break;
         }
         line->command[line->size_command] = rd[i];
         line->size_command++;
@@ -347,17 +357,18 @@ int main(){
             int proof = Again_Command(&line, rd);
            	if(proof == 0) continue;
         }
-        int spaces_ = 0;
-        while(spaces_ < 100 && rd[spaces_] == ' ')
-            spaces_++;
-        for(int i = 0; i < 100; i++){
-            if(rd[i] == '\n'){
-                save_h[i] = '\n';
-                break;    
-            }
-            save_h[i] = rd[i];
-        }
-        if(spaces_ == 0) save_history(save_h);
+        // int spaces_ = 0;
+        // while(spaces_ < 100 && rd[spaces_] == ' ')
+        //     spaces_++;
+        // for(int i = 0; i < 100; i++){
+        //     if(rd[i] == '\n'){
+        //         save_h[i] = '\n';
+        //         break;    
+        //     }
+        //     save_h[i] = rd[i];
+        // }
+        if(rd[0] != ' ') save_history(rd);
+        
         if(strcmp(line.command, "history") == 0){
             show_history();
             continue;
