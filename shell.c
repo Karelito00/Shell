@@ -14,7 +14,9 @@
 #define Cyan "\x1b[36m"
 #define RESET "\x1b[0m"
 
-char *path_initial;
+/////////////////////
+
+const int SIZE_INPUT = 100;
 
 typedef struct Commands{
     char *args[100];
@@ -88,7 +90,7 @@ void Parse_to_command(char **tokens, int count_tokens, Commands *command){
 const int TAM_HIST = 20;
 
 void save_history(char *line){
-    FILE *file_h = fopen(path_initial, "a+");
+    FILE *file_h = fopen("file_h", "a+");
     int lines = 0;
     char *hist = malloc((TAM_HIST + 2) * 100);
     char *lh = malloc(100);
@@ -116,14 +118,14 @@ void save_history(char *line){
         if(line[i] == '\n') break;
     }
     fclose(file_h);
-    file_h = fopen(path_initial, "w");
+    file_h = fopen("file_h", "w");
     fprintf(file_h, "%d\n", min(lines + 1, TAM_HIST));
     fputs(hist, file_h);
     fclose(file_h);
 }
 
 void show_history(){
-    FILE *file_h = fopen(path_initial, "r");
+    FILE *file_h = fopen("file_h", "r");
     char *lh = malloc(100);
     int cant;
     fscanf(file_h, "%d", &cant);
@@ -175,11 +177,13 @@ void Parse_Line(Parse *line, char *rd){
     }
 }
 
-int Again_Command(Parse *line, char *rd){
+
+
+int Again_Command(Parse *line){
 	int num = 0;
     for(int i = 0; i < line->size_rest; i++)
         num = num * 10 + (line->rest[i] - '0');
-    FILE *file_h = fopen(path_initial, "r");
+    FILE *file_h = fopen("file_h", "r");
     char *lh = (char*)malloc(100);
     int cant;
     fscanf(file_h, "%d", &cant);
@@ -188,17 +192,20 @@ int Again_Command(Parse *line, char *rd){
         fclose(file_h);
         return 0;
     }
+
+    char *aux_str = (char *)malloc(SIZE_INPUT);
+
     fgets(lh, 100, file_h);
     for(int j = 0; j < cant; j++){
         fgets(lh, 100, file_h);
         if(j == num - 1){
             for(int i = 0; i < 100; i++)
-                rd[i] = lh[i];
+                aux_str[i] = lh[i];
             break;
         }
     }
     fclose(file_h);
-    Parse_Line(&(*line), rd);
+    Parse_Line(&(*line), aux_str);
    	return 1;
 }
 
@@ -326,71 +333,69 @@ int Parse_For_Pipes(Commands *array_comm, Parse *line){
     return count_comm;
 }
 
+int execute(Parse *line){
+    if(strcmp(line->command, "history") == 0){
+        show_history();
+        return 0;
+    }
+    if(strcmp(line->command, "jobs") == 0){
+
+        return 0;
+    }
+    if(strcmp(line->command, "exit") == 0)
+        return 1;
+
+    Commands *array_comm = malloc(100);
+    int count_comm = Parse_For_Pipes(array_comm, line);
+    if(strcmp(line->command, "cd") == 0){
+        int success = chdir(array_comm[0].args[1]);
+        //printf("%s\n", array_comm[0].args[1]); //no es necesario imprimir nada
+        if(success != 0)
+            printf("No such file or directory\n");
+    }
+    else{
+        execute_command(&array_comm[0]);
+    }
+    return 0;
+}
+
 int main(){
+    FILE *cf = fopen("file_h", "r");
 	//Para crear el archivo file_h en caso de que no exista que va a contener el historial
-    path_initial = (char*)malloc(100);
-    getcwd(path_initial, 100);
-    char *aux_s = "/file_h";
-    for(int i = strlen(path_initial), c = 0; c < 7; c++, i++)
-        path_initial[i] = aux_s[c];
-    FILE *cf = fopen(path_initial, "r");
     if(cf == NULL){
-        cf = fopen(path_initial, "w");
+        cf = fopen("file_h", "w");
         fprintf(cf, "%d\n", 0);
     }
     fclose(cf);
+
     Jobs = malloc(100);
     cant_jobs = 0;
     while(1){
         printf(Yellow "my-prompt " RESET "$ ");
+
+        //initialize
         char *rd = (char*)malloc(100);
         for(int i = 0; i < 100; i++)
         	rd[i] = '\0';
-        char *save_h = (char*)malloc(100);
-        for(int i = 0; i < 100; i++)
-        	save_h[i] = '\0';
+
         fgets(rd, 100, stdin);
         if(rd[0] == '\n') continue;
+        
         Parse line;
         Parse_Line(&line, rd);
-        if(strcmp(line.command, "again") == 0){
-            int proof = Again_Command(&line, rd);
-           	if(proof == 0) continue;
-        }
-        // int spaces_ = 0;
-        // while(spaces_ < 100 && rd[spaces_] == ' ')
-        //     spaces_++;
-        // for(int i = 0; i < 100; i++){
-        //     if(rd[i] == '\n'){
-        //         save_h[i] = '\n';
-        //         break;    
-        //     }
-        //     save_h[i] = rd[i];
-        // }
-        if(rd[0] != ' ') save_history(rd);
-        
-        if(strcmp(line.command, "history") == 0){
-            show_history();
-            continue;
-        }
-        if(strcmp(line.command, "jobs") == 0){
 
-            continue;
+        //no guardamos los comando "again" en el historial para no provocar una recursividad infinita
+        if(strcmp(line.command, "again") == 0){
+            int proof = Again_Command(&line);
+            if(proof == 0) 
+                return 0;
         }
-        if(strcmp(line.command, "exit") == 0)
-            return 0;
-       	Commands *array_comm = malloc(100);
-       	int count_comm = Parse_For_Pipes(array_comm, &line);
-        if(strcmp(line.command, "cd") == 0){
-            int success = chdir(array_comm[0].args[1]);
-            //printf("%s\n", array_comm[0].args[1]); //no es necesario imprimir nada
-            if(success != 0)
-            	printf("No such file or directory\n");
-        }
-        else{
-           	execute_command(&array_comm[0]);
-        }
+        else if(rd[0] != ' ') 
+            save_history(rd);
         
+        if(execute(&line))
+            return 0;
     }
+
     return 0;
 }
