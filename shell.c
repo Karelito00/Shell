@@ -142,6 +142,12 @@ void Parse_Line(Parse *line, char *rd){
     initial_Parse(&(*line));
     int spaces_ = 0;
     int tam = 100;
+
+    // Cambia comillas simples por comillas dobles
+    for(int i = 0; i < tam; i++)
+    	if(rd[i] == '\'')
+    		rd[i] = '\"';
+
     for(int i = 99; i >= 0; i--){
     	if(rd[i] == '&'){
     		tam = i - 1;
@@ -149,6 +155,7 @@ void Parse_Line(Parse *line, char *rd){
     		break;
     	}
     }
+
     while(spaces_ < tam && rd[spaces_] == ' ')
         spaces_++;
     if(spaces_ < tam && rd[spaces_] == '#'){
@@ -274,25 +281,26 @@ int Parse_For_Pipes(Commands *array_comm, Parse *line){
     char *cad_aux = malloc(100);
     for(int i = 0; i < 100; i++)
     	cad_aux[i] = '\0';
+
     int cnt = 0;
     int comillas = 0;
     tokens[0] = line->command;
     count_tokens++;
     for(int i = 0; i < line->size_rest; i++){
-        if(line->rest[i] == '|' && comillas == 0){
-        	if(cnt > 0){
-	        	tokens[count_tokens] = cad_aux;
-	            count_tokens++;
-	            cnt = 0;
-	            cad_aux = malloc(100);
-	            for(int i = 0; i < 100; i++)
-    				cad_aux[i] = '\0';
-        	}
-            count_comm++;
-            tokens[count_tokens] = NULL;
-            initial_Commands(&array_comm[count_comm]);
-            Parse_to_command(tokens, count_tokens, &array_comm[count_comm]);
-        }
+        // if(line->rest[i] == '|' && comillas == 0){
+        // 	if(cnt > 0){
+	    //     	tokens[count_tokens] = cad_aux;
+	    //         count_tokens++;
+	    //         cnt = 0;
+	    //         cad_aux = malloc(100);
+	    //         for(int i = 0; i < 100; i++)
+    	// 			cad_aux[i] = '\0';
+        // 	}
+        //     count_comm++;
+        //     tokens[count_tokens] = NULL;
+        //     initial_Commands(&array_comm[count_comm]);
+        //     Parse_to_command(tokens, count_tokens, &array_comm[count_comm]);
+        // }
         if(line->rest[i] == ' ' && comillas == 0){
             if(cnt){
                 tokens[count_tokens] = cad_aux;
@@ -304,27 +312,31 @@ int Parse_For_Pipes(Commands *array_comm, Parse *line){
             }
             continue;
         }
+
         if(line->rest[i] == '"'){
             if(comillas == 1){
-                tokens[count_tokens] = cad_aux;
-                count_tokens++;
-                cnt = 0;
-                cad_aux = malloc(100);
-                for(int i = 0; i < 100; i++)
-    				cad_aux[i] = '\0';
+                // tokens[count_tokens] = cad_aux;
+                // count_tokens++;
+                // cnt = 0;
+                // cad_aux = malloc(100);
+                // for(int i = 0; i < 100; i++)
+    			// 	cad_aux[i] = '\0';
                 comillas = 0;
             }
-            else comillas = 1;
-            continue;                
+            else 
+                comillas = 1;
+            continue;
         }
         cad_aux[cnt] = line->rest[i];
-        cnt++;           
+        cnt++;
     }
+
     if(cnt){
         tokens[count_tokens] = cad_aux;
         count_tokens++;
         cnt = 0;
     }
+
     count_comm++;
     initial_Commands(&array_comm[count_comm]);
     Parse_to_command(tokens, count_tokens, &array_comm[count_comm]);
@@ -346,7 +358,7 @@ int execute(Parse *line){
         return 1;
 
     Commands *array_comm = malloc(100);
-    int count_comm = Parse_For_Pipes(array_comm, line);
+    /*int count_comm = */Parse_For_Pipes(array_comm, line);
     if(strcmp(line->command, "cd") == 0){
         int success = chdir(array_comm[0].args[1]);
         //printf("%s\n", array_comm[0].args[1]); //no es necesario imprimir nada
