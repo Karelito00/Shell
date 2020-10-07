@@ -1,11 +1,11 @@
 10
+ls
+karel
+karel
+karel
+karel
 pwd
+pwd
+pwd
+ls
 exit
-cd abc
-history
-pwd
-cd ..
-cd Shel
-cd shell
-cd Shell/
-pwd

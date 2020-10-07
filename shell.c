@@ -1,411 +1,112 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
-#include <dirent.h>
-#include <unistd.h>
-#include <sys/wait.h>
-#include <sys/types.h>
-#include <signal.h>
-#include <fcntl.h>
-#define Red "\x1b[31m"
-#define Yellow "\x1b[33m"
-#define Blue "\x1b[34m"
-#define Cyan "\x1b[36m"
-#define RESET "\x1b[0m"
+#include "parse.c"
 
 /////////////////////
 
-const int SIZE_INPUT = 100;
-
-typedef struct Commands{
-    char *args[100];
-    int count_arg;
-    int mod1, mod2, mod3; //mod1 = 1 cuando existe >, mod2 = 1 para >>, mod3 = 1 para <
-    char *input, *output;
-    int backg;
-}Commands;
-
-typedef struct Parse{
-    char *command, *rest;
-    int size_command, size_rest;
-    int backg;
-}Parse;
-
-void initial_Parse(Parse *parse){
-    parse->command = (char*)malloc(100);
-    for(int i = 0; i < 100; i++)
-		parse->command[i] = '\0';
-    parse->rest = (char*)malloc(100);
-    for(int i = 0; i < 100; i++)
-		parse->rest[i] = '\0';
-    parse->size_command = 0;
-    parse->size_rest = 0;
-    parse->backg = 0;
-}
-
-void initial_Commands(Commands *command){
-    command->count_arg = 0;
-    command->mod1 = command->mod2 = command->mod3 = 0;
-    command->input = (char*)malloc(100);
-    for(int i = 0; i < 100; i++)
-		command->input = '\0';
-    command->output = (char*)malloc(100);
-    for(int i = 0; i < 100; i++)
-		command->output = '\0';
-	command->backg = 0;
-}
-
-int min(int a, int b){
-    if(a < b) return a;
-    return b;
-}
-
-void Parse_to_command(char **tokens, int count_tokens, Commands *command){
-    for(int i = 0; i < count_tokens; i++){
-        if(strcmp(tokens[i], ">") == 0){
-            command->mod1 = 1;
-            command->output = tokens[i + 1];
+void execute_command(Command *command){
+    int mod1 = 0, mod2 = 0, mod3 = 0;
+    char *output, *input;
+    for(int i = 0; i < command->length_args; i++){
+        if(strcmp(command->args[i], ">") == 0){
+            mod1 = 1;
+            output = command->args[i + 1];
             i++;
         }
-        else if(strcmp(tokens[i], ">>") == 0){
-            command->mod2 = 1;
-            command->output = tokens[i + 1];
+        else if(strcmp(command->args[i], ">>") == 0){
+            mod2 = 1;
+            output = command->args[i + 1];
             i++;
         }
-        else if(strcmp(tokens[i], "<") == 0){
-            command->mod3 = 1;
-            command->input = tokens[i + 1];
+        else if(strcmp(command->args[i], "<") == 0){
+            mod3 = 1;
+            input = command->args[i + 1];
             i++;
         }
-        else{
-            command->args[command->count_arg] = tokens[i];
-            command->count_arg++;
-        }
     }
-    command->args[command->count_arg] = NULL;
-    command->count_arg++;
-}
-
-const int TAM_HIST = 20;
-
-void save_history(char *line){
-    FILE *file_h = fopen("file_h", "a+");
-    int lines = 0;
-    char *hist = malloc((TAM_HIST + 2) * 100);
-    char *lh = malloc(100);
-    int tot = 0;
-    int cant;
-    fscanf(file_h, "%d", &cant);
-    fgets(lh, 100, file_h);
-    for(int j = 0; j < cant; j++){
-        fgets(lh, 100, file_h);
-        if(cant == TAM_HIST && j == 0) continue;
-        for(int i = 0; i < 100; i++){
-            hist[tot] = lh[i];
-            tot++;
-            if(lh[i] == '\n') break;
-        }
-        lines++;
-    }
-    //last command duplicate
-    if(strcmp(line,lh) == 0)
-        return;
-
-    for(int i = 0; i < 100; i++){
-        hist[tot] = line[i];
-        tot++;
-        if(line[i] == '\n') break;
-    }
-    fclose(file_h);
-    file_h = fopen("file_h", "w");
-    fprintf(file_h, "%d\n", min(lines + 1, TAM_HIST));
-    fputs(hist, file_h);
-    fclose(file_h);
-}
-
-void show_history(){
-    FILE *file_h = fopen("file_h", "r");
-    char *lh = malloc(100);
-    int cant;
-    fscanf(file_h, "%d", &cant);
-    fgets(lh, 100, file_h);
-    for(int j = 0; j < cant; j++){
-        fgets(lh, 100, file_h);
-        printf("%d: ", j + 1);
-        printf("%s", lh);
-    }
-    fclose(file_h);
-}
-
-void Parse_Line(Parse *line, char *rd){
-    initial_Parse(&(*line));
-    int spaces_ = 0;
-    int tam = 100;
-
-    // Cambia comillas simples por comillas dobles
-    for(int i = 0; i < tam; i++)
-    	if(rd[i] == '\'')
-    		rd[i] = '\"';
-
-    for(int i = 99; i >= 0; i--){
-    	if(rd[i] == '&'){
-    		tam = i - 1;
-    		line->backg = 1;
-    		break;
-    	}
-    }
-
-    while(spaces_ < tam && rd[spaces_] == ' ')
-        spaces_++;
-    if(spaces_ < tam && rd[spaces_] == '#'){
-        line->command[0] = 0;
-        return;
-    }        
-    int t = 0;
-    for(int i = spaces_; i < tam; i++){
-        if(rd[i] == ' ' || rd[i] == '\n'){
-            t = i + 1;
-            line->command[line->size_command] = 0;
-            break;
-        }
-        line->command[line->size_command] = rd[i];
-        line->size_command++;
-    }
-    if(rd[t - 1] == ' '){
-        for(int i = t; i < tam; i++){
-            if(rd[i] == '\n' || rd[i] == '#'){
-                line->rest[i - t] = 0;
-                break;
-            }
-            line->rest[i - t] = rd[i];
-            line->size_rest++;
-        }
-    }
-}
-
-
-
-int Again_Command(Parse *line){
-	int num = 0;
-    for(int i = 0; i < line->size_rest; i++)
-        num = num * 10 + (line->rest[i] - '0');
-    FILE *file_h = fopen("file_h", "r");
-    char *lh = (char*)malloc(100);
-    int cant;
-    fscanf(file_h, "%d", &cant);
-    if(cant < num){
-        printf(Red "Command not found\n" RESET);
-        fclose(file_h);
-        return 0;
-    }
-
-    char *aux_str = (char *)malloc(SIZE_INPUT);
-
-    fgets(lh, 100, file_h);
-    for(int j = 0; j < cant; j++){
-        fgets(lh, 100, file_h);
-        if(j == num - 1){
-            for(int i = 0; i < 100; i++)
-                aux_str[i] = lh[i];
-            break;
-        }
-    }
-    fclose(file_h);
-    Parse_Line(&(*line), aux_str);
-   	return 1;
-}
-
-char **Jobs;
-int cant_jobs;
-
-void execute_command(Commands *command){
-	pid_t pid = fork();
+    pid_t pid = fork();
     if(pid == 0){
-        if(command->mod1 == 1){
-            int fd = creat(command->output, 0644);
+        if(mod1 == 1){
+            int fd = creat(output, 0644);
             dup2(fd, STDOUT_FILENO);
             close(fd);
         }
-        if(command->mod2 == 1){
-            int fd = open(command->output, O_CREAT | O_WRONLY | O_APPEND, 777);
+        if(mod2 == 1){
+            int fd = open(output, O_CREAT | O_WRONLY | O_APPEND, 777);
             dup2(fd, STDOUT_FILENO);
             close(fd);
         }
-        if(command->mod3 == 1){
-            int fd = open(command->input, O_RDONLY);
+        if(mod3 == 1){
+            int fd = open(input, O_RDONLY);
             dup2(fd, STDIN_FILENO);
             close(fd);
         }
-        int cap = execvp(command->args[0], command->args);
-        if(cap < 0) printf(Red "Error to execute \'%s\'\n" RESET, command->args[0]);
+        char *command_opt = command->command;
+        char **args_opt = malloc(command->length_args + 1);
+        args_opt[0] = command_opt;
+        for(int i = 0; i < command->length_args; i++){
+            args_opt[i + 1] = command->args[i];
+        }
+        args_opt[command->length_args + 1] = NULL;
+        int cap = execvp(command_opt, args_opt);
+        if(cap < 0) printf(Red "Error to execute \'%s\'\n" RESET, args_opt[0]);
         exit(0);
     }
     else{
-    	if(command->backg == 0) 
-    		wait(NULL);
-    	else{
-    		Jobs[cant_jobs] = (char*)malloc(100);
-    		for(int i = 0; i < 100; i++)
-    			Jobs[cant_jobs][i] = '\0';
-    		return;
-    		int cnt = 0;
-    		for(int i = 0; i < command->count_arg; i++){
-    			int j = 0;
-    			while(command->args[i][j] != '\0'){
-    				Jobs[cant_jobs][cnt] = command->args[i][j];
-    				cnt++;
-    				j++;
-    			}
-    			if(i != command->count_arg - 1){
-    				Jobs[cant_jobs][cnt] = ' ';
-    				cnt++;
-    			}
-    		}
-    		cant_jobs++;
-    	}
+    	wait(NULL);
     }
 }
 
-void show_jobs(){
-	for(int i = 0; i < cant_jobs; i++){
-		printf("[%d]", i + 1);
-		printf("%s\n", Jobs[i]);
-	}
-}
 
-int Parse_For_Pipes(Commands *array_comm, Parse *line){
-	int count_comm = -1;
-    char **tokens = malloc(100);
-    int count_tokens = 0;
-    char *cad_aux = malloc(100);
-    for(int i = 0; i < 100; i++)
-    	cad_aux[i] = '\0';
-
-    int cnt = 0;
-    int comillas = 0;
-    tokens[0] = line->command;
-    count_tokens++;
-    for(int i = 0; i < line->size_rest; i++){
-        // if(line->rest[i] == '|' && comillas == 0){
-        // 	if(cnt > 0){
-	    //     	tokens[count_tokens] = cad_aux;
-	    //         count_tokens++;
-	    //         cnt = 0;
-	    //         cad_aux = malloc(100);
-	    //         for(int i = 0; i < 100; i++)
-    	// 			cad_aux[i] = '\0';
-        // 	}
-        //     count_comm++;
-        //     tokens[count_tokens] = NULL;
-        //     initial_Commands(&array_comm[count_comm]);
-        //     Parse_to_command(tokens, count_tokens, &array_comm[count_comm]);
-        // }
-        if(line->rest[i] == ' ' && comillas == 0){
-            if(cnt){
-                tokens[count_tokens] = cad_aux;
-                count_tokens++;
-                cnt = 0;
-                cad_aux = malloc(100);
-                for(int i = 0; i < 100; i++)
-    				cad_aux[i] = '\0';
-            }
-            continue;
-        }
-
-        if(line->rest[i] == '"'){
-            if(comillas == 1){
-                // tokens[count_tokens] = cad_aux;
-                // count_tokens++;
-                // cnt = 0;
-                // cad_aux = malloc(100);
-                // for(int i = 0; i < 100; i++)
-    			// 	cad_aux[i] = '\0';
-                comillas = 0;
-            }
-            else 
-                comillas = 1;
-            continue;
-        }
-        cad_aux[cnt] = line->rest[i];
-        cnt++;
-    }
-
-    if(cnt){
-        tokens[count_tokens] = cad_aux;
-        count_tokens++;
-        cnt = 0;
-    }
-
-    count_comm++;
-    initial_Commands(&array_comm[count_comm]);
-    Parse_to_command(tokens, count_tokens, &array_comm[count_comm]);
-    if(line->backg == 1)
-    	array_comm[0].backg = 1;
-    return count_comm;
-}
-
-int execute(Parse *line){
+int execute(Command *line){
     if(strcmp(line->command, "history") == 0){
         show_history();
         return 0;
     }
-    if(strcmp(line->command, "jobs") == 0){
-
+    if(strcmp(line->command, "help") == 0){
+        help(line);
         return 0;
     }
+    /*if(strcmp(line->command, "jobs") == 0){
+
+        return 0;
+    }*/
     if(strcmp(line->command, "exit") == 0)
         return 1;
-
-    Commands *array_comm = malloc(100);
-    /*int count_comm = */Parse_For_Pipes(array_comm, line);
     if(strcmp(line->command, "cd") == 0){
-        int success = chdir(array_comm[0].args[1]);
-        //printf("%s\n", array_comm[0].args[1]); //no es necesario imprimir nada
+        int success = chdir(line->args[0]);
         if(success != 0)
             printf("No such file or directory\n");
     }
     else{
-        execute_command(&array_comm[0]);
+        execute_command(line);
     }
     return 0;
 }
 
 int main(){
-    FILE *cf = fopen("file_h", "r");
-	//Para crear el archivo file_h en caso de que no exista que va a contener el historial
-    if(cf == NULL){
-        cf = fopen("file_h", "w");
-        fprintf(cf, "%d\n", 0);
-    }
-    fclose(cf);
-
-    Jobs = malloc(100);
-    cant_jobs = 0;
+    Initial(); //Create file for history
     while(1){
         printf(Yellow "my-prompt " RESET "$ ");
-
         //initialize
-        char *rd = (char*)malloc(100);
-        for(int i = 0; i < 100; i++)
-        	rd[i] = '\0';
-
-        fgets(rd, 100, stdin);
-        if(rd[0] == '\n') continue;
-        
-        Parse line;
-        Parse_Line(&line, rd);
-
-        //no guardamos los comando "again" en el historial para no provocar una recursividad infinita
-        if(strcmp(line.command, "again") == 0){
-            int proof = Again_Command(&line);
-            if(proof == 0) 
-                return 0;
+        char *line_input_temp = malloc(SIZE * sizeof(char));
+        line_input_temp[0] = 0;
+        fgets(line_input_temp, SIZE, stdin);
+        char *line_input = Delete_Spaces_Of_The_begin(line_input_temp);
+        if(line_input[0] == '\n') continue; //if first character is endline('\n'), then we will to do another cycle.
+        Commands_Split_Pipes input_process = Parse_Input(line_input);
+        if(strcmp(input_process._command[0].command, "again") == 0){
+            char *get_line = malloc(SIZE);
+            int proof = Again_Command(&input_process._command[0], get_line);
+            if(proof == 0){
+                printf(Red "Error to execute command again\n" RESET);
+                continue;
+            }
+            line_input = get_line;
+            input_process = Parse_Input(get_line);
         }
-        else if(rd[0] != ' ') 
-            save_history(rd);
+        if(line_input[0] != ' ') 
+            Save_History(line_input);
         
-        if(execute(&line))
+        if(execute(&input_process._command[0]))
             return 0;
     }
 
