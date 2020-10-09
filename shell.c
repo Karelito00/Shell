@@ -2,22 +2,25 @@
 
 /////////////////////
 
-void execute_command(Command *command){
+void execute_command(Command *command,int in,int out){
     pid_t pid = fork();
+    if(in == -1) in = STDIN_FILENO;
+    if(out == -1) out = STDOUT_FILENO;
+
     if(pid == 0){
         if(command->mod1 == 1){
             int fd = creat(command->output, 0644);
-            dup2(fd, STDOUT_FILENO);
+            dup2(fd, out);
             close(fd);
         }
         if(command->mod2 == 1){
             int fd = open(command->output, O_CREAT | O_WRONLY | O_APPEND, 777);
-            dup2(fd, STDOUT_FILENO);
+            dup2(fd, out);
             close(fd);
         }
         if(command->mod3 == 1){
             int fd = open(command->input, O_RDONLY);
-            dup2(fd, STDIN_FILENO);
+            dup2(fd, in);
             close(fd);
         }
         char *command_opt = command->command;
@@ -35,7 +38,6 @@ void execute_command(Command *command){
     	wait(NULL);
     }
 }
-
 
 int execute(Command *line){
     if(strcmp(line->command, "history") == 0){
@@ -58,7 +60,7 @@ int execute(Command *line){
             printf("No such file or directory\n");
     }
     else{
-        execute_command(line);
+        execute_command(line,-1,-1);
     }
     return 0;
 }
