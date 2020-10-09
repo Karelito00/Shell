@@ -3,7 +3,7 @@
 void Copy_To_Line(char word_temp[], int *count_words, Command *temp_command, int *length_word_temp){
     word_temp[*length_word_temp] = 0;
     if(*count_words == 0) //it's the command
-        Copy_To(word_temp, temp_command->command);
+        Copy_To(word_temp, temp_command->name);
 
     else{ //it's a parameter
         temp_command->args[*count_words - 1] = malloc(SIZE * sizeof(char));
@@ -16,31 +16,47 @@ void Copy_To_Line(char word_temp[], int *count_words, Command *temp_command, int
 
 void Copy_Temp(Command *temp, Commands_Split_Pipes *input_process){
     input_process->length_commands++;
-    Constructor_Command(&(input_process->_command[input_process->length_commands - 1]));
-    Copy_To(temp->command, input_process->_command[input_process->length_commands - 1].command);
+    int length_split = input_process->length_commands - 1;
+
+    Constructor_Command(&(input_process->_command[length_split]));
+    Copy_To(temp->name, input_process->_command[length_split].name);
+    
+
     for(int i = 0; i < temp->length_args; i++){
         if(strcmp(temp->args[i], ">") == 0){
-            input_process->_command[input_process->length_commands - 1].mod1 = 1;
-            input_process->_command[input_process->length_commands - 1].mod2 = 0;
-            input_process->_command[input_process->length_commands - 1].output = temp->args[i + 1];
+            if(i + 1 == temp->length_args){
+                input_process->_command[length_split].error = 1;
+                continue;
+            }
+            input_process->_command[length_split].mod1 = 1;
+            input_process->_command[length_split].mod2 = 0;
+            input_process->_command[length_split].output = temp->args[i + 1];
             i++;
         }
         else if(strcmp(temp->args[i], ">>") == 0){
-            input_process->_command[input_process->length_commands - 1].mod1 = 0;
-            input_process->_command[input_process->length_commands - 1].mod2 = 1;
-            input_process->_command[input_process->length_commands - 1].output = temp->args[i + 1];
+            if(i + 1 == temp->length_args){
+                input_process->_command[length_split].error = 1;
+                continue;
+            }
+            input_process->_command[length_split].mod1 = 0;
+            input_process->_command[length_split].mod2 = 1;
+            input_process->_command[length_split].output = temp->args[i + 1];
             i++;
         }
         else if(strcmp(temp->args[i], "<") == 0){
-            input_process->_command[input_process->length_commands - 1].mod3 = 1;
-            input_process->_command[input_process->length_commands - 1].input = temp->args[i + 1];
+            if(i + 1 == temp->length_args){
+                input_process->_command[length_split].error = 1;
+                continue;
+            }
+            input_process->_command[length_split].mod3 = 1;
+            input_process->_command[length_split].input = temp->args[i + 1];
             i++;
         }
         else{
-            input_process->_command[input_process->length_commands - 1].length_args++;
-            int val = input_process->_command[input_process->length_commands - 1].length_args;
-            input_process->_command[input_process->length_commands - 1].args[val - 1] = malloc(sizeof(char) * SIZE);
-            Copy_To(temp->args[i], input_process->_command[input_process->length_commands - 1].args[val - 1]);
+            input_process->_command[length_split].length_args++;
+            int val = input_process->_command[length_split].length_args;
+            input_process->_command[length_split].args[val - 1] = malloc(sizeof(char) * SIZE);
+            Copy_To(temp->args[i], input_process->_command[length_split].args[val - 1]);
         }
     }
 }
@@ -79,6 +95,8 @@ Commands_Split_Pipes Parse_Input(char line_input[]){
             Copy_To_Line(word_temp, &count_words, &temp_command, &length_word_temp);
             if(line_input[i] != ' '){ //it's special character
                 if(i + 1 == strlen(line_input)){
+                    word_temp[length_word_temp] = line_input[i];
+                    length_word_temp++;
                     Copy_To_Line(word_temp, &count_words, &temp_command, &length_word_temp);
                     continue;
                 }
@@ -113,7 +131,7 @@ Commands_Split_Pipes Parse_Input(char line_input[]){
     }
     if(reading == 1 || comillas == 1){
         Copy_To_Line(word_temp, &count_words, &temp_command, &length_word_temp);
-        Copy_Temp(&temp_command, &input_process);
     }
+    Copy_Temp(&temp_command, &input_process);
     return input_process;
 }

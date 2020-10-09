@@ -3,6 +3,10 @@
 /////////////////////
 
 void execute_command(Command *command){
+    if(command->error == 1){
+        ERRORC(command->name);
+        return;
+    }
     pid_t pid = fork();
     if(pid == 0){
         if(command->mod1 == 1){
@@ -20,7 +24,7 @@ void execute_command(Command *command){
             dup2(fd, STDIN_FILENO);
             close(fd);
         }
-        char *command_opt = command->command;
+        char *command_opt = command->name;
         char **args_opt = malloc(command->length_args + 1);
         args_opt[0] = command_opt;
         for(int i = 0; i < command->length_args; i++){
@@ -28,7 +32,7 @@ void execute_command(Command *command){
         }
         args_opt[command->length_args + 1] = NULL;
         int cap = execvp(command_opt, args_opt);
-        if(cap < 0) printf(Red "Error to execute \'%s\'\n" RESET, args_opt[0]);
+        if(cap < 0) ERRORC(args_opt[0]);
         exit(0);
     }
     else{
@@ -37,28 +41,28 @@ void execute_command(Command *command){
 }
 
 
-int execute(Command *line){
-    if(strcmp(line->command, "history") == 0){
+int execute(Command *command){
+    if(strcmp(command->name, "history") == 0){
         show_history();
         return 0;
     }
-    if(strcmp(line->command, "help") == 0){
-        help(line);
+    if(strcmp(command->name, "help") == 0){
+        help(command);
         return 0;
     }
-    /*if(strcmp(line->command, "jobs") == 0){
+    /*if(strcmp(command->name, "jobs") == 0){
 
         return 0;
     }*/
-    if(strcmp(line->command, "exit") == 0)
+    if(strcmp(command->name, "exit") == 0)
         return 1;
-    if(strcmp(line->command, "cd") == 0){
-        int success = chdir(line->args[0]);
+    if(strcmp(command->name, "cd") == 0){
+        int success = chdir(command->args[0]);
         if(success != 0)
             printf("No such file or directory\n");
     }
     else{
-        execute_command(line);
+        execute_command(command);
     }
     return 0;
 }
@@ -70,11 +74,14 @@ int main(){
         //initialize
         char *line_input_temp = malloc(SIZE * sizeof(char));
         line_input_temp[0] = 0;
-        fgets(line_input_temp, SIZE, stdin);
+        fgets(line_input_temp, SIZE, stdin); //get line
+
         char *line_input = Delete_Spaces_Of_The_begin(line_input_temp);
+
         if(line_input[0] == '\n') continue; //if first character is endline('\n'), then we will to do another cycle.
+        
         Commands_Split_Pipes input_process = Parse_Input(line_input);
-        if(strcmp(input_process._command[0].command, "again") == 0){
+        if(strcmp(input_process._command[0].name, "again") == 0){
             char *get_line = malloc(SIZE);
             int proof = Again_Command(&input_process._command[0], get_line);
             if(proof == 0){

@@ -15,6 +15,7 @@
 #define RESET "\x1b[0m"
 #define SIZE 100000
 #define db printf(Red "debug" RESET "\n")
+#define ERRORC(cad) printf(Red "Error to execute \'%s\'" RESET "\n", (cad))
 
 int min(int a, int b){
     if(a < b) return a;
@@ -27,25 +28,29 @@ int may(int a, int b){
 }
 
 typedef struct Command{
-    char *command;
+    char *name;
     char **args;
-    int mod1, mod2, mod3;
+    int mod1; //for >
+    int mod2; //for >>
+    int mod3; //for <
     char *input, *output;
     int length_args;
+    int error; //Report errors 
 }Command;
 
-typedef struct Commands_Split_Pipes{
+typedef struct Commands_Split_Pipes{ 
     Command *_command;
     int length_commands;
 }Commands_Split_Pipes;
 
 void Constructor_Command(Command *_command){
-    _command->command = malloc(sizeof(char) * SIZE);
+    _command->name = malloc(sizeof(char) * SIZE);
     _command->args = malloc(sizeof(char) * SIZE);
     _command->length_args = 0;
     _command->mod1 = _command->mod2 = _command->mod3 = 0;
     _command->input = malloc(sizeof(char) * SIZE);
     _command->output = malloc(sizeof(char) * SIZE);
+    _command->error = 0;
 }
 
 void Constructor_Commands_Split_Pipes(Commands_Split_Pipes *input_process){
