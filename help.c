@@ -1,7 +1,7 @@
 #include "dependencies.c"
 
 void general_help(){
-    printf("Integrantes: Alben Luis Urquiza Rojas y Karel Diaz Vergara del 212\n\n");
+    printf("\nIntegrantes: Alben Luis Urquiza Rojas y Karel Diaz Vergara del 212\n\n");
     printf("Funcionalidades:\n");
 
     printf("\n");

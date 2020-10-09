@@ -3,39 +3,20 @@
 /////////////////////
 
 void execute_command(Command *command){
-    int mod1 = 0, mod2 = 0, mod3 = 0;
-    char *output, *input;
-    for(int i = 0; i < command->length_args; i++){
-        if(strcmp(command->args[i], ">") == 0){
-            mod1 = 1;
-            output = command->args[i + 1];
-            i++;
-        }
-        else if(strcmp(command->args[i], ">>") == 0){
-            mod2 = 1;
-            output = command->args[i + 1];
-            i++;
-        }
-        else if(strcmp(command->args[i], "<") == 0){
-            mod3 = 1;
-            input = command->args[i + 1];
-            i++;
-        }
-    }
     pid_t pid = fork();
     if(pid == 0){
-        if(mod1 == 1){
-            int fd = creat(output, 0644);
+        if(command->mod1 == 1){
+            int fd = creat(command->output, 0644);
             dup2(fd, STDOUT_FILENO);
             close(fd);
         }
-        if(mod2 == 1){
-            int fd = open(output, O_CREAT | O_WRONLY | O_APPEND, 777);
+        if(command->mod2 == 1){
+            int fd = open(command->output, O_CREAT | O_WRONLY | O_APPEND, 777);
             dup2(fd, STDOUT_FILENO);
             close(fd);
         }
-        if(mod3 == 1){
-            int fd = open(input, O_RDONLY);
+        if(command->mod3 == 1){
+            int fd = open(command->input, O_RDONLY);
             dup2(fd, STDIN_FILENO);
             close(fd);
         }

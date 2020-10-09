@@ -14,6 +14,7 @@
 #define Cyan "\x1b[36m"
 #define RESET "\x1b[0m"
 #define SIZE 100000
+#define db printf(Red "debug" RESET "\n")
 
 int min(int a, int b){
     if(a < b) return a;
@@ -28,6 +29,8 @@ int may(int a, int b){
 typedef struct Command{
     char *command;
     char **args;
+    int mod1, mod2, mod3;
+    char *input, *output;
     int length_args;
 }Command;
 
@@ -40,6 +43,9 @@ void Constructor_Command(Command *_command){
     _command->command = malloc(sizeof(char) * SIZE);
     _command->args = malloc(sizeof(char) * SIZE);
     _command->length_args = 0;
+    _command->mod1 = _command->mod2 = _command->mod3 = 0;
+    _command->input = malloc(sizeof(char) * SIZE);
+    _command->output = malloc(sizeof(char) * SIZE);
 }
 
 void Constructor_Commands_Split_Pipes(Commands_Split_Pipes *input_process){
@@ -55,4 +61,10 @@ int Is_Special(char x){
             return 1;
     }
     return 0;
+}
+
+void Copy_To(char a[], char b[]){ //Copy from a to b
+    for(int i = 0; i < strlen(a); i++)
+        b[i] = a[i];
+    b[strlen(a) + 1] = 0;
 }
