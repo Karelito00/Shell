@@ -43,6 +43,11 @@ typedef struct Commands_Split_Pipes{
     int length_commands;
 }Commands_Split_Pipes;
 
+typedef struct Split_Lines_Dotcomma{ 
+    Commands_Split_Pipes *commands_splits;
+    int length_commands_splits;
+}Split_Lines_Dotcomma;
+
 void Constructor_Command(Command *_command){
     _command->name = malloc(sizeof(char) * SIZE);
     _command->args = malloc(sizeof(char) * SIZE);
@@ -56,6 +61,12 @@ void Constructor_Command(Command *_command){
 void Constructor_Commands_Split_Pipes(Commands_Split_Pipes *input_process){
     input_process->_command = malloc(SIZE);
     input_process->length_commands = 0;
+}
+
+void Constructor_Split_Lines_Dotcomma(Split_Lines_Dotcomma *lines){
+    lines->commands_splits = malloc(SIZE);
+    Constructor_Commands_Split_Pipes(lines->commands_splits);
+    lines->length_commands_splits = 0;
 }
 
 char special_characters[] = {' ', '|', '>', '<', '&'};

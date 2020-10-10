@@ -85,7 +85,7 @@ void show_history(){
     fclose(file_h);
 }
 
-char* Delete_Spaces_Of_The_begin(char *line_input_temp){
+char* Delete_Spaces_Of_The_begin(char line_input_temp[]){
     char *line_input = malloc(SIZE * sizeof(char));
     int space = 0;
     int length_line_input = 0;

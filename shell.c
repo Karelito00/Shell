@@ -67,21 +67,23 @@ int execute(Command *command){
     return 0;
 }
 
+void String_Of_Commands(Commands_Split_Pipes *commands_pipes){
+    execute(&(commands_pipes->_command[0]));
+}
+
 int main(){
     Initial(); //Create file for history
     while(1){
         printf(Yellow "my-prompt " RESET "$ ");
         //initialize
-        char *line_input_temp = malloc(SIZE * sizeof(char));
-        line_input_temp[0] = 0;
-        fgets(line_input_temp, SIZE, stdin); //get line
-
-        char *line_input = Delete_Spaces_Of_The_begin(line_input_temp);
-
-        if(line_input[0] == '\n') continue; //if first character is endline('\n'), then we will to do another cycle.
+        char *line_input = malloc(SIZE * sizeof(char));
+        fgets(line_input, SIZE, stdin); //get line
         
-        Commands_Split_Pipes input_process = Parse_Input(line_input);
-        if(strcmp(input_process._command[0].name, "again") == 0){
+        Split_Lines_Dotcomma line_split;
+        Constructor_Split_Lines_Dotcomma(&line_split);
+        Split_Line(line_input, &line_split);
+
+        /*if(strcmp(input_process._command[0].name, "again") == 0){
             char *get_line = malloc(SIZE);
             int proof = Again_Command(&input_process._command[0], get_line);
             if(proof == 0){
@@ -90,12 +92,12 @@ int main(){
             }
             line_input = get_line;
             input_process = Parse_Input(get_line);
-        }
+        }*/
         if(line_input[0] != ' ') 
             Save_History(line_input);
-        
-        if(execute(&input_process._command[0]))
-            return 0;
+        for(int i = 0; i < line_split.length_commands_splits; i++){
+            String_Of_Commands(&line_split.commands_splits[i]);
+        }
     }
 
     return 0;

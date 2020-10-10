@@ -135,3 +135,28 @@ Commands_Split_Pipes Parse_Input(char line_input[]){
     Copy_Temp(&temp_command, &input_process);
     return input_process;
 }
+
+void Split_Line(char line[], Split_Lines_Dotcomma *line_split){
+    char *word_temp = malloc(SIZE);
+    int length_word_temp = 0;
+    for(int i = 0; i < strlen(line); i++){
+        if(line[i] == ';'){
+            if(length_word_temp == 0) continue;
+            char *line_without_space = Delete_Spaces_Of_The_begin(word_temp);
+            line_split->commands_splits[line_split->length_commands_splits] = Parse_Input(line_without_space);
+            line_split->length_commands_splits++;
+            word_temp = malloc(SIZE);
+            length_word_temp = 0;
+            continue;
+        }
+        word_temp[length_word_temp] = line[i];
+        length_word_temp++;
+    }
+    if(length_word_temp > 0){
+        char *line_without_space = Delete_Spaces_Of_The_begin(word_temp);
+        line_split->commands_splits[line_split->length_commands_splits] = Parse_Input(line_without_space);
+        line_split->length_commands_splits++;
+        word_temp = malloc(SIZE);
+        length_word_temp = 0;
+    }
+}
