@@ -69,7 +69,7 @@ void Constructor_Split_Lines_Dotcomma(Split_Lines_Dotcomma *lines){
     lines->length_commands_splits = 0;
 }
 
-char special_characters[] = {' ', '|', '>', '<', '&'};
+char special_characters[] = {' ', '|', '>', '<', '&', ';'};
 
 int Is_Special(char x){
     for(int i = 0; i < strlen(special_characters); i++){

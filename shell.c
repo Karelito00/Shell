@@ -50,10 +50,7 @@ int execute(Command *command){
         help(command);
         return 0;
     }
-    /*if(strcmp(command->name, "jobs") == 0){
-
-        return 0;
-    }*/
+    
     if(strcmp(command->name, "exit") == 0)
         return 1;
     if(strcmp(command->name, "cd") == 0){
@@ -67,8 +64,9 @@ int execute(Command *command){
     return 0;
 }
 
-void String_Of_Commands(Commands_Split_Pipes *commands_pipes){
-    execute(&(commands_pipes->_command[0]));
+int String_Of_Commands(Commands_Split_Pipes *commands_pipes){
+    int status = execute(&(commands_pipes->_command[0]));
+    if(status == 1) return 1;
 }
 
 int main(){
@@ -78,25 +76,21 @@ int main(){
         //initialize
         char *line_input = malloc(SIZE * sizeof(char));
         fgets(line_input, SIZE, stdin); //get line
+
+        if(Is_Only_Spaces(line_input)) continue;
+
+        //First we have to change every command 'again' for the right command on history
+        char *new_line = malloc(SIZE);
+        Change_Command_Again(line_input, new_line);
         
         Split_Lines_Dotcomma line_split;
         Constructor_Split_Lines_Dotcomma(&line_split);
-        Split_Line(line_input, &line_split);
+        Split_Line(new_line, &line_split);
 
-        /*if(strcmp(input_process._command[0].name, "again") == 0){
-            char *get_line = malloc(SIZE);
-            int proof = Again_Command(&input_process._command[0], get_line);
-            if(proof == 0){
-                printf(Red "Error to execute command again\n" RESET);
-                continue;
-            }
-            line_input = get_line;
-            input_process = Parse_Input(get_line);
-        }*/
-        if(line_input[0] != ' ') 
-            Save_History(line_input);
+        Save_History(new_line);
         for(int i = 0; i < line_split.length_commands_splits; i++){
-            String_Of_Commands(&line_split.commands_splits[i]);
+            int status = String_Of_Commands(&line_split.commands_splits[i]);
+            if(status == 1) return 0;
         }
     }
 
