@@ -22,7 +22,7 @@ int min(int a, int b){
     return b;
 }
 
-int may(int a, int b){
+int max(int a, int b){
     if(a > b) return a;
     return b;
 }
@@ -36,6 +36,9 @@ typedef struct Command{
     char *input, *output;
     int length_args;
     int error; //Report errors 
+    char *_if;
+    char *_then;
+    char *_else;
 }Command;
 
 typedef struct Commands_Split_Pipes{ 
@@ -62,6 +65,9 @@ void Constructor_Command(Command *_command){
     _command->input = malloc(sizeof(char) * SIZE);
     _command->output = malloc(sizeof(char) * SIZE);
     _command->error = 0;
+    _command->_else = NULL;
+    _command->_if = NULL;
+    _command->_then = NULL;
 }
 
 void Constructor_Commands_Split_Pipes(Commands_Split_Pipes *input_process){
