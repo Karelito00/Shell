@@ -1,11 +1,11 @@
 10
-help&&pwd
-help&&pwd
-help&&pwd
-help&&pwd
-help&&pwd
-help&&pwd
-help&&pwd
-ps&&help
-ptttsa&&help
-pttts||help
+exit
+true
+false
+exit
+true&&pwd
+false&&pwd
+false||pwd
+true||pwd
+pwd&&cat<file_h||ls;help;cat file_h;history
+exit

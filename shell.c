@@ -7,6 +7,9 @@ int execute_command(Command *command){
         ERRORC(command->name);
         return 1;
     }
+    if(strcmp(command->name, "true") == 0) return 0;
+    if(strcmp(command->name, "false") == 0) return 1;
+    int status = 0;
     pid_t pid = fork();
     if(pid == 0){
         if(command->mod1 == 1){
@@ -27,14 +30,14 @@ int execute_command(Command *command){
         int cap = execvp(command->name, command->args);
         if(cap < 0){
             ERRORC(command->name);
-            return 1;
+            status = 1;
         }
         exit(0);
     }
     else{
     	wait(NULL);
     }
-    return 0;
+    return status;
 }
 
 

@@ -93,7 +93,7 @@ void Parse_Input(char line_input[], Commands_Split_Cond *split_cond){
     int comillas = 0;
     for(int i = 0; i < strlen(line_input); i++){
         if(line_input[i] == '#' || line_input[i] == '\n') break;
-        if(line_input[i] == '\'' && line_input[i] == '\"'){
+        if(line_input[i] == '\'' || line_input[i] == '\"'){
             if(comillas == 1){
                 comillas = 0;
                 reading = 0;
