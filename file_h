@@ -1,11 +1,11 @@
 10
-history
-history; pwd
-exit
-exit
-help
-exit
-history
-history
-history
-help;history; pwd; exit
+help&&pwd
+help&&pwd
+help&&pwd
+help&&pwd
+help&&pwd
+help&&pwd
+help&&pwd
+ps&&help
+ptttsa&&help
+pttts||help

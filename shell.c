@@ -2,10 +2,10 @@
 
 /////////////////////
 
-void execute_command(Command *command){
+int execute_command(Command *command){
     if(command->error == 1){
         ERRORC(command->name);
-        return;
+        return 1;
     }
     pid_t pid = fork();
     if(pid == 0){
@@ -24,20 +24,17 @@ void execute_command(Command *command){
             dup2(fd, STDIN_FILENO);
             close(fd);
         }
-        char *command_opt = command->name;
-        char **args_opt = malloc(command->length_args + 1);
-        args_opt[0] = command_opt;
-        for(int i = 0; i < command->length_args; i++){
-            args_opt[i + 1] = command->args[i];
+        int cap = execvp(command->name, command->args);
+        if(cap < 0){
+            ERRORC(command->name);
+            return 1;
         }
-        args_opt[command->length_args + 1] = NULL;
-        int cap = execvp(command_opt, args_opt);
-        if(cap < 0) ERRORC(args_opt[0]);
         exit(0);
     }
     else{
     	wait(NULL);
     }
+    return 0;
 }
 
 
@@ -51,22 +48,29 @@ int execute(Command *command){
         return 0;
     }
     
-    if(strcmp(command->name, "exit") == 0)
-        return 1;
+    if(strcmp(command->name, "exit") == 0){
+        exit(0);
+    }
     if(strcmp(command->name, "cd") == 0){
-        int success = chdir(command->args[0]);
-        if(success != 0)
+        if(command->length_args < 2){
+            ERRORC("cd");
+            return 1;
+        }
+        int success = chdir(command->args[1]);
+        if(success != 0){
             printf("No such file or directory\n");
+            return 1;
+        }
+        return 0;
     }
     else{
-        execute_command(command);
+        return execute_command(command);
     }
-    return 0;
 }
 
 int String_Of_Commands(Commands_Split_Pipes *commands_pipes){
-    int status = execute(&(commands_pipes->_command[0]));
-    if(status == 1) return 1;
+    int status = execute(&(commands_pipes->command_by_pipes[0])); //not pipes yet :(
+    return status;
 }
 
 int main(){
@@ -86,11 +90,18 @@ int main(){
         Split_Lines_Dotcomma line_split;
         Constructor_Split_Lines_Dotcomma(&line_split);
         Split_Line(new_line, &line_split);
-
         Save_History(new_line);
-        for(int i = 0; i < line_split.length_commands_splits; i++){
-            int status = String_Of_Commands(&line_split.commands_splits[i]);
-            if(status == 1) return 0;
+        for(int i = 0; i < line_split.length_lines_splits; i++){ //lines independent for ;
+            for(int j = 0; j <= line_split.commands_lines[i].length_cond; j++){ //iterating for conditions
+                int status = String_Of_Commands(&line_split.commands_lines[i].command_by_cond[j]);
+                if(j == line_split.commands_lines[i].length_cond) continue;
+                if(line_split.commands_lines[i].Type_Cond[j] == 0){
+                    if(status == 0) break;
+                }
+                else{
+                    if(status == 1) break;
+                }
+            }
         }
     }
 

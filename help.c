@@ -9,11 +9,12 @@ void general_help(){
     printf("\nTotal de puntos: x.x puntos\n\n");
 }
 
-void help(Command *input_process){
-    if(input_process->length_args == 0){
+int help(Command *input_process){
+    if(input_process->length_args == 1){
         general_help();
-        return;
+        return 0;
     }
-    char *param = input_process->args[0];
+    char *param = input_process->args[1];
     printf(Red "No se econtro la ayuda para el comando: %s.\n" RESET, param);
+    return 1;
 }

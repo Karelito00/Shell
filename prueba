@@ -1,0 +1,11 @@
+10
+pwd
+exit
+pwd
+ls
+ls
+history
+help;history; pwd; exit
+help;history; pwd
+cat file_h
+cat<file_h>prueba

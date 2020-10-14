@@ -39,18 +39,24 @@ typedef struct Command{
 }Command;
 
 typedef struct Commands_Split_Pipes{ 
-    Command *_command;
-    int length_commands;
+    Command *command_by_pipes;
+    int length_pipes;
 }Commands_Split_Pipes;
 
+typedef struct Commands_Split_Cond{ 
+    Commands_Split_Pipes *command_by_cond;
+    int *Type_Cond;
+    int length_cond;
+}Commands_Split_Cond;
+
 typedef struct Split_Lines_Dotcomma{ 
-    Commands_Split_Pipes *commands_splits;
-    int length_commands_splits;
+    Commands_Split_Cond *commands_lines;
+    int length_lines_splits;
 }Split_Lines_Dotcomma;
 
 void Constructor_Command(Command *_command){
     _command->name = malloc(sizeof(char) * SIZE);
-    _command->args = malloc(sizeof(char) * SIZE);
+    _command->args = malloc(SIZE);
     _command->length_args = 0;
     _command->mod1 = _command->mod2 = _command->mod3 = 0;
     _command->input = malloc(sizeof(char) * SIZE);
@@ -59,14 +65,19 @@ void Constructor_Command(Command *_command){
 }
 
 void Constructor_Commands_Split_Pipes(Commands_Split_Pipes *input_process){
-    input_process->_command = malloc(SIZE);
-    input_process->length_commands = 0;
+    input_process->command_by_pipes = malloc(SIZE);
+    input_process->length_pipes = 0;
+}
+
+void Constructor_Commands_Split_Cond(Commands_Split_Cond *split_cond){
+    split_cond->command_by_cond = malloc(SIZE);
+    split_cond->length_cond = 0;
+    split_cond->Type_Cond = malloc(sizeof(int) * SIZE);
 }
 
 void Constructor_Split_Lines_Dotcomma(Split_Lines_Dotcomma *lines){
-    lines->commands_splits = malloc(SIZE);
-    Constructor_Commands_Split_Pipes(lines->commands_splits);
-    lines->length_commands_splits = 0;
+    lines->commands_lines = malloc(SIZE);
+    lines->length_lines_splits = 0;
 }
 
 char special_characters[] = {' ', '|', '>', '<', '&', ';'};
