@@ -1,11 +1,12 @@
 10
 history
-cat>prueba<file_h
+if false then pwd else ls end
+history
+if if false then pwd else ls then echo karel else echo false end
+if if false then pwd else ls then echo karel else echo false end
+help
+history
 exit
 history
-pwd
-ls
-probando esta shit de mierda
-help
-cat<file_h>>prueba
-cat                                   <                             file_h>>                         prueba
+if if false then pwd else ls then echo karel else echo false end
+istory

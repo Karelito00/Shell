@@ -2,7 +2,14 @@
 
 /////////////////////
 
-void execute_command(Command *command,int in,int out){
+
+
+int execute_command(Command *command,int in,int out){
+    
+    if(strcmp(command->name, "true") == 0) return 0;
+    if(strcmp(command->name, "false") == 0) return 1;
+    
+    int status = 0;
     pid_t pid = fork();
     if(in == -1) in = STDIN_FILENO;
     if(out == -1) out = STDOUT_FILENO;
@@ -23,46 +30,165 @@ void execute_command(Command *command,int in,int out){
             dup2(fd, in);
             close(fd);
         }
-        char *command_opt = command->command;
-        char **args_opt = malloc(command->length_args + 1);
-        args_opt[0] = command_opt;
-        for(int i = 0; i < command->length_args; i++){
-            args_opt[i + 1] = command->args[i];
+        int cap = execvp(command->name, command->args);
+        if(cap < 0){
+            ERRORC(command->name);
+            status = 1;
         }
-        args_opt[command->length_args + 1] = NULL;
-        int cap = execvp(command_opt, args_opt);
-        if(cap < 0) printf(Red "Error to execute \'%s\'\n" RESET, args_opt[0]);
         exit(0);
     }
     else{
     	wait(NULL);
     }
+    return status;
 }
 
-int execute(Command *line){
-    if(strcmp(line->command, "history") == 0){
+int execute(Command *command,int in,int out){
+    if(strcmp(command->name, "history") == 0){
         show_history();
         return 0;
     }
-    if(strcmp(line->command, "help") == 0){
-        help(line);
+    if(strcmp(command->name, "help") == 0){
+        help(command);
         return 0;
     }
-    /*if(strcmp(line->command, "jobs") == 0){
-
+    
+    if(strcmp(command->name, "exit") == 0){
+        exit(0);
+    }
+    if(strcmp(command->name, "cd") == 0){
+        if(command->length_args < 2){
+            ERRORC("cd");
+            return 1;
+        }
+        int success = chdir(command->args[1]);
+        if(success != 0){
+            printf("No such file or directory %s\n", command->args[1]);
+            return 1;
+        }
         return 0;
-    }*/
-    if(strcmp(line->command, "exit") == 0)
-        return 1;
-    if(strcmp(line->command, "cd") == 0){
-        int success = chdir(line->args[0]);
-        if(success != 0)
-            printf("No such file or directory\n");
     }
     else{
-        execute_command(line,-1,-1);
+        if(command->error == 1){
+            ERRORC(command->name);
+            return 1;
+        }
+        return execute_command(command,in,out);
     }
-    return 0;
+}
+
+int String_Of_Commands(Commands_Split_Pipes *commands_pipes){
+    Command *command = &(commands_pipes->command_by_pipes[0]);
+
+    // debug
+    printf("%s ",command->name);
+    for(int i = 0;i < command->length_args;i++)
+        printf("%s ",command->args[i]);
+    printf("\n");
+
+
+    if(strcmp(command->name, "if") == 0){
+        if(command->_if == NULL || command->_then == NULL || command->error == 1){
+            printf(Red"La sintaxis del if es incorrecta." RESET "\n");
+            return 0;
+        }
+        Commands_Split_Cond split_cond;
+        Constructor_Commands_Split_Cond(&split_cond);
+        Parse_Input(command->_if, &split_cond);
+        int status_if = 0; //IF
+        for(int j = 0; j <= split_cond.length_cond; j++){ //iterating for conditions
+            int status = String_Of_Commands(&split_cond.command_by_cond[j]);
+            if(j == split_cond.length_cond){
+                status_if = status;
+                continue;
+            }
+            if(j == split_cond.length_cond){
+                status_if = status;
+                continue;
+            }
+            if(split_cond.Type_Cond[j] == 0){
+                if(status == 1){
+                    status_if = 1;
+                    break;
+                }
+            }
+            else{
+                if(status == 1){
+                    status_if = 1;
+                    break;
+                }
+            }
+        }
+        if(status_if == 1){//ELSE
+            if(command->_else != NULL){
+                Constructor_Commands_Split_Cond(&split_cond);
+                Parse_Input(command->_else, &split_cond);
+                int status_else = 0;
+                for(int j = 0; j <= split_cond.length_cond; j++){ //iterating for conditions
+                    int status = String_Of_Commands(&split_cond.command_by_cond[j]);
+                    if(j == split_cond.length_cond){
+                        status_else = status;
+                        continue;
+                    }
+                    if(j == split_cond.length_cond){
+                        status_else = status;
+                        continue;
+                    }
+                    if(split_cond.Type_Cond[j] == 0){
+                        if(status == 1){
+                            status_else = 1;
+                            break;
+                        }
+                    }
+                    else{
+                        if(status == 1){
+                            status_else = 1;
+                            break;
+                        }
+                    }
+                    return status_else;
+                }
+            }
+            else{
+                return 1;
+            }
+        }
+        else{//THEN
+            Constructor_Commands_Split_Cond(&split_cond);
+            Parse_Input(command->_then, &split_cond);
+            int status_then = 0;
+            for(int j = 0; j <= split_cond.length_cond; j++){ //iterating for conditions
+                int status = String_Of_Commands(&split_cond.command_by_cond[j]);
+                if(j == split_cond.length_cond){
+                    status_then = status;
+                    continue;
+                }
+                if(j == split_cond.length_cond){
+                    status_then = status;
+                    continue;
+                }
+                if(split_cond.Type_Cond[j] == 0){
+                    if(status == 1){
+                        status_then = 1;
+                        break;
+                    }
+                }
+                else{
+                    if(status == 1){
+                        status_then = 1;
+                        break;
+                    }
+                }
+            }
+            return status_then;
+        }
+    }
+    else{
+        int status = execute(command,-1,-1); //not pipes yet :(
+        return status;
+    }
+
+    return EXIT_SUCCESS;//never exectue
 }
 
 int main(){
@@ -70,27 +196,36 @@ int main(){
     while(1){
         printf(Yellow "my-prompt " RESET "$ ");
         //initialize
-        char *line_input_temp = malloc(SIZE * sizeof(char));
-        line_input_temp[0] = 0;
-        fgets(line_input_temp, SIZE, stdin);
-        char *line_input = Delete_Spaces_Of_The_begin(line_input_temp);
-        if(line_input[0] == '\n') continue; //if first character is endline('\n'), then we will to do another cycle.
-        Commands_Split_Pipes input_process = Parse_Input(line_input);
-        if(strcmp(input_process._command[0].command, "again") == 0){
-            char *get_line = malloc(SIZE);
-            int proof = Again_Command(&input_process._command[0], get_line);
-            if(proof == 0){
-                printf(Red "Error to execute command again\n" RESET);
-                continue;
-            }
-            line_input = get_line;
-            input_process = Parse_Input(get_line);
-        }
-        if(line_input[0] != ' ') 
-            Save_History(line_input);
+        char *line_input = malloc(SIZE * sizeof(char));
+        fgets(line_input, SIZE, stdin); //get line
+
+        if(Is_Only_Spaces(line_input)) continue;
+
+        //First we have to change every command 'again' for the right command on history
+        char *new_line = malloc(SIZE);
+        Change_Command_Again(line_input, new_line);
+        Save_History(new_line);
         
-        if(execute(&input_process._command[0]))
-            return 0;
+        if(Have_Background(new_line) != 0){
+            printf(Red "Nuestro shell no soporta el keyword: background" RESET "\n");
+            continue;
+        }
+
+        Split_Lines_Dotcomma line_split;
+        Constructor_Split_Lines_Dotcomma(&line_split);
+        Split_Line(new_line, &line_split);
+        for(int i = 0; i < line_split.length_lines_splits; i++){ //lines independent for ;
+            for(int j = 0; j <= line_split.commands_lines[i].length_cond; j++){ //iterating for conditions
+                int status = String_Of_Commands(&line_split.commands_lines[i].command_by_cond[j]);
+                if(j == line_split.commands_lines[i].length_cond) continue;
+                if(line_split.commands_lines[i].Type_Cond[j] == 0){
+                    if(status == 0) break;
+                }
+                else{
+                    if(status == 1) break;
+                }
+            }
+        }
     }
 
     return 0;
