@@ -109,19 +109,20 @@ void Change_Command_Again(char line[], char new_line[]){
     new_line[length_new_line] = 0;
 }
 
-int Check_Background_Correct(char line[]){
+int Have_Background(char line[]){
     int len = strlen(line);
     for(int i = 0; i < len; i++){
+        if(line[i] == '#' || line[i] == '\n') break;
         if(line[i] == '&'){
-            if(i == len - 1) return 1;
-            if(line[i + 1] == '&'){
-                i++;
-                continue;
-            }
-            return 0;
+            int aux = 0;
+            if(i > 0 && line[i - 1] == '&')
+                aux++;
+            if(i < len - 1 && line[i + 1] == '&')
+                aux++;
+            if(aux == 0) return 1;
         }
     }
-    return 1;
+    return 0;
 }
 
 void Save_History(char *line){

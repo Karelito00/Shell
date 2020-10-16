@@ -77,7 +77,8 @@ int execute(Command *command){
 int String_Of_Commands(Commands_Split_Pipes *commands_pipes){
     Command *command = &(commands_pipes->command_by_pipes[0]);
     if(strcmp(command->name, "if") == 0){
-        if(command->_if == NULL || command->_then == NULL){
+        if(command->_if == NULL || command->_then == NULL || command->error == 1){
+            printf(Red"La sintaxis del if es incorrecta." RESET "\n");
             return 0;
         }
         Commands_Split_Cond split_cond;
@@ -190,11 +191,17 @@ int main(){
         //First we have to change every command 'again' for the right command on history
         char *new_line = malloc(SIZE);
         Change_Command_Again(line_input, new_line);
+        Save_History(new_line);
         
+        if(Have_Background(new_line) != 0){
+            printf(Red "Nuestro shell no soporta el keyword: background" RESET "\n");
+            continue;
+        }
+
+
         Split_Lines_Dotcomma line_split;
         Constructor_Split_Lines_Dotcomma(&line_split);
         Split_Line(new_line, &line_split);
-        Save_History(new_line);
         for(int i = 0; i < line_split.length_lines_splits; i++){ //lines independent for ;
             for(int j = 0; j <= line_split.commands_lines[i].length_cond; j++){ //iterating for conditions
                 int status = String_Of_Commands(&line_split.commands_lines[i].command_by_cond[j]);

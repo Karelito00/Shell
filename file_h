@@ -1,11 +1,12 @@
 10
-if false then ls else echo karel end
-if false then ls else echo karel end
-echo karel
-if false then ls else echo karel end
-if false then ls else echo karel end
-if if false then pwd else ls then echo karel else echo false end
-if if false then pwd else ls end then echo karel else echo false end
+history
 if false then pwd else ls end
-if if false then pwd else ls end then echo karel else echo false end
-if if false then pwd else ls end then echo karel else echo false end
+history
+if if false then pwd else ls then echo karel else echo false end
+if if false then pwd else ls then echo karel else echo false end
+help
+history
+exit
+history
+if if false then pwd else ls then echo karel else echo false end
+istory
