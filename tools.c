@@ -1,10 +1,17 @@
 #include "help.c"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-void Initial(){
+char *path_initial;
+
+void Initial(char *path,int tam){
+    path_initial = malloc(tam);
+    path_initial = path;
     //Para crear el archivo file_h en caso de que no exista que va a contener el historial
-    FILE *cf = fopen("file_h", "r");
+    FILE *cf = fopen(path_initial, "r");
     if(cf == NULL){
-        cf = fopen("file_h", "w");
+        cf = fopen(path_initial, "w");
         fprintf(cf, "%d\n", 0);
     }
     fclose(cf);
@@ -20,7 +27,7 @@ int Again_Command(Command *input_process, char get_line[]){
     }
     
     if(number == 0) return 0;
-    FILE *file_h = fopen("file_h", "a+");
+    FILE *file_h = fopen(path_initial, "a+");
     int lines_history = 0;
     char *hist = malloc(SIZE);
     fscanf(file_h, "%d", &lines_history);
@@ -126,7 +133,7 @@ int Have_Background(char line[]){
 }
 
 void Save_History(char *line){
-    FILE *file_h = fopen("file_h", "a+");
+    FILE *file_h = fopen(path_initial, "a+");
     char *hist = malloc(SIZE);
     char *file_history = malloc(SIZE);
     int count = 0;
@@ -149,23 +156,58 @@ void Save_History(char *line){
         if(line[i] == '\n') break;
     }
     fclose(file_h);
-    file_h = fopen("file_h", "w");
+    file_h = fopen(path_initial, "w");
     fprintf(file_h, "%d\n", min(lines_history + 1, 10));
     fputs(hist, file_h);
     fclose(file_h);
 }
 
-void show_history(){
-    FILE *file_h = fopen("file_h", "r");
+void int_to_string(int n,char *str,int len){
+    int f;
+    for(f = 0;f < len && n;f++){
+        str[f] = '0' + n%10;
+        n /= 10;
+    }
+    str[f--] = '\0';
+
+    int i = 0;
+    while(i < f){
+        char t = str[i];
+        str[i] = str[f];
+        str[f] = t;
+
+        i++; f--;
+    }
+}
+
+void show_history(int in,int out){
+    FILE *file_h = fopen(path_initial, "r");
     char *history_line = malloc(100);
     int lines_history;
     fscanf(file_h, "%d", &lines_history);
     fgets(history_line, 100, file_h);
+
+    // dup2(out,STDOUT_FILENO);
+
+    const int Length_Line = 100;
+    char *tmp = malloc(Length_Line);
+
     for(int j = 0; j < lines_history; j++){
         fgets(history_line, 100, file_h);
-        printf("%d: ", j + 1);
-        printf("%s", history_line);
+
+        int_to_string(j + 1,tmp,Length_Line);
+        strcat(tmp,": ");
+        strcat(tmp,history_line);
+
+        write(out,tmp,strlen(tmp));
+        // printf("%d: ", j + 1);
+        // printf("%s", history_line);
     }
+
+    // dup2(STDOUT_FILENO,out);
+
+    if(out > 2)
+        close(out);
     fclose(file_h);
 }
 

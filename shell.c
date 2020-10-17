@@ -1,8 +1,10 @@
 #include "parse.c"
 
 /////////////////////
+// constant
+const int TAM_PATH = 100;
 
-
+//////////////////////
 
 int execute_command(Command *command,int in,int out){
     
@@ -11,10 +13,12 @@ int execute_command(Command *command,int in,int out){
     
     int status = 0;
     pid_t pid = fork();
-    if(in == -1) in = STDIN_FILENO;
-    if(out == -1) out = STDOUT_FILENO;
 
     if(pid == 0){
+        dup2(in,STDIN_FILENO);
+        dup2(out,STDOUT_FILENO);
+
+
         if(command->mod1 == 1){
             int fd = creat(command->output, 0644);
             dup2(fd, out);
@@ -30,6 +34,12 @@ int execute_command(Command *command,int in,int out){
             dup2(fd, in);
             close(fd);
         }
+
+        if(out > 2)
+            close(out);
+
+        // debug
+        // printf("LLEGO1    %d  %d\n",in,out);
         int cap = execvp(command->name, command->args);
         if(cap < 0){
             ERRORC(command->name);
@@ -38,22 +48,31 @@ int execute_command(Command *command,int in,int out){
         exit(0);
     }
     else{
-    	wait(NULL);
+        if(out > 2)
+            close(out);
+    	wait(&pid);
     }
     return status;
 }
 
 int execute(Command *command,int in,int out){
+    if(in == -1) in = STDIN_FILENO;
+    if(out == -1) out = STDOUT_FILENO;
+
     if(strcmp(command->name, "history") == 0){
-        show_history();
+        show_history(in,out);
         return 0;
     }
     if(strcmp(command->name, "help") == 0){
-        help(command);
+        help(command,in,out); //pending output for pipes
         return 0;
     }
     
     if(strcmp(command->name, "exit") == 0){
+        //if has pipe
+        if(STDIN_FILENO != in && STDOUT_FILENO != out)
+            return EXIT_SUCCESS;
+
         exit(0);
     }
     if(strcmp(command->name, "cd") == 0){
@@ -61,6 +80,10 @@ int execute(Command *command,int in,int out){
             ERRORC("cd");
             return 1;
         }
+        //if has pipe
+        if(STDIN_FILENO != in && STDOUT_FILENO != out)
+            return EXIT_SUCCESS;
+
         int success = chdir(command->args[1]);
         if(success != 0){
             printf("No such file or directory %s\n", command->args[1]);
@@ -77,16 +100,7 @@ int execute(Command *command,int in,int out){
     }
 }
 
-int String_Of_Commands(Commands_Split_Pipes *commands_pipes){
-    Command *command = &(commands_pipes->command_by_pipes[0]);
-
-    // debug
-    printf("%s ",command->name);
-    for(int i = 0;i < command->length_args;i++)
-        printf("%s ",command->args[i]);
-    printf("\n");
-
-
+int Only_One_Command(Command *command,int in,int out){
     if(strcmp(command->name, "if") == 0){
         if(command->_if == NULL || command->_then == NULL || command->error == 1){
             printf(Red"La sintaxis del if es incorrecta." RESET "\n");
@@ -184,15 +198,74 @@ int String_Of_Commands(Commands_Split_Pipes *commands_pipes){
         }
     }
     else{
-        int status = execute(command,-1,-1); //not pipes yet :(
+        int status = execute(command,in,out);
         return status;
     }
 
     return EXIT_SUCCESS;//never exectue
 }
 
+int String_Of_Commands(Commands_Split_Pipes *commands_pipes){
+    // int f[2];
+    // if (pipe(f) < 0) 
+    //     exit(1); 
+
+    char *temp_out = malloc(TAM_PATH);
+    char *temp_in = malloc(TAM_PATH);
+
+    int in,out;
+
+    for(int i = 0;i < commands_pipes->length_pipes;i++){
+        // debug
+        // printf("%d\n",i);
+        // printf("%s ",commands_pipes->command_by_pipes[i].name);
+        // for(int j = 0;j < commands_pipes->command_by_pipes[i].length_args;j++)
+        //     printf("%s ",commands_pipes->command_by_pipes[i].args[j]);
+        // printf("\n");
+
+        // int in = f[0];
+        // int out = fd;
+
+        if(i == 0)
+            in = -1;
+        else
+            in = open(temp_in,O_RDONLY);
+
+        if(i + 1 == commands_pipes->length_pipes)
+            out = -1;
+        else{
+            getcwd(temp_out,TAM_PATH);
+            strcat(temp_out,"/.temporal_output");
+            char *num = malloc(5);
+            num[0] = (char)('0' + i);
+            num[1] = '\0';
+            strcat(temp_out,num);
+
+            out = creat(temp_out,S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+        }
+
+        if(Only_One_Command(&(commands_pipes->command_by_pipes[i]),in,out) == 1){
+            printf("Error en la ejecucion del comando\n");
+            return EXIT_FAILURE;
+        }
+
+        //delete archive old
+        if(i > 0)
+            remove(temp_in);
+        //otput this command is the input of the next
+        if(i + 1 < commands_pipes->length_pipes)
+            strcpy(temp_in,temp_out);
+    }
+
+    return EXIT_SUCCESS;
+}
+
 int main(){
-    Initial(); //Create file for history
+    char *path_initial = malloc(TAM_PATH);
+    getcwd(path_initial, TAM_PATH);
+    strcat(path_initial,"/file_h");
+
+    Initial(path_initial,TAM_PATH); //Create file for history
     while(1){
         printf(Yellow "my-prompt " RESET "$ ");
         //initialize
@@ -214,9 +287,12 @@ int main(){
         Split_Lines_Dotcomma line_split;
         Constructor_Split_Lines_Dotcomma(&line_split);
         Split_Line(new_line, &line_split);
+
         for(int i = 0; i < line_split.length_lines_splits; i++){ //lines independent for ;
             for(int j = 0; j <= line_split.commands_lines[i].length_cond; j++){ //iterating for conditions
+
                 int status = String_Of_Commands(&line_split.commands_lines[i].command_by_cond[j]);
+
                 if(j == line_split.commands_lines[i].length_cond) continue;
                 if(line_split.commands_lines[i].Type_Cond[j] == 0){
                     if(status == 0) break;

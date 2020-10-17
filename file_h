@@ -1,12 +1,11 @@
 10
-history
-if false then pwd else ls end
-history
-if if false then pwd else ls then echo karel else echo false end
-if if false then pwd else ls then echo karel else echo false end
-help
-history
 exit
-history
-if if false then pwd else ls then echo karel else echo false end
-istory
+cat | ls
+exit
+cat | ls
+cat | ls
+cat | ls
+prueba|prueba|prueba|prueba
+exit
+cat | ls
+cat | ls
