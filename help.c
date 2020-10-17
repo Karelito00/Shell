@@ -29,7 +29,7 @@ void general_help(){
 
 }
 
-int help(Command *input_process){
+int help(Command *input_process,int in,int out){
     if(input_process->length_args == 1){
         general_help();
         return 0;

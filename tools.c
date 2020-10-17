@@ -1,4 +1,7 @@
 #include "help.c"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 char *path_initial;
 
@@ -131,7 +134,6 @@ int Have_Background(char line[]){
 
 void Save_History(char *line){
     FILE *file_h = fopen(path_initial, "a+");
-    int lines = 0;
     char *hist = malloc(SIZE);
     char *file_history = malloc(SIZE);
     int count = 0;
@@ -160,17 +162,52 @@ void Save_History(char *line){
     fclose(file_h);
 }
 
-void show_history(){
+void int_to_string(int n,char *str,int len){
+    int f;
+    for(f = 0;f < len && n;f++){
+        str[f] = '0' + n%10;
+        n /= 10;
+    }
+    str[f--] = '\0';
+
+    int i = 0;
+    while(i < f){
+        char t = str[i];
+        str[i] = str[f];
+        str[f] = t;
+
+        i++; f--;
+    }
+}
+
+void show_history(int in,int out){
     FILE *file_h = fopen(path_initial, "r");
     char *history_line = malloc(100);
     int lines_history;
     fscanf(file_h, "%d", &lines_history);
     fgets(history_line, 100, file_h);
+
+    // dup2(out,STDOUT_FILENO);
+
+    const int Length_Line = 100;
+    char *tmp = malloc(Length_Line);
+
     for(int j = 0; j < lines_history; j++){
         fgets(history_line, 100, file_h);
-        printf("%d: ", j + 1);
-        printf("%s", history_line);
+
+        int_to_string(j + 1,tmp,Length_Line);
+        strcat(tmp,": ");
+        strcat(tmp,history_line);
+
+        write(out,tmp,strlen(tmp));
+        // printf("%d: ", j + 1);
+        // printf("%s", history_line);
     }
+
+    // dup2(STDOUT_FILENO,out);
+
+    if(out > 2)
+        close(out);
     fclose(file_h);
 }
 
