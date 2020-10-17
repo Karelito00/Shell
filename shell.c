@@ -178,8 +178,14 @@ int String_Of_Commands(Commands_Split_Pipes *commands_pipes){
     }
 }
 
+const int TAM_PATH = 100;
+
 int main(){
-    Initial(); //Create file for history
+    char *path_initial = malloc(TAM_PATH);
+    getcwd(path_initial, TAM_PATH);
+    strcat(path_initial,"/file_h");
+
+    Initial(path_initial,TAM_PATH); //Create file for history
     while(1){
         printf(Yellow "my-prompt " RESET "$ ");
         //initialize
