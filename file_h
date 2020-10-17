@@ -1,11 +1,11 @@
 10
+help
 exit
-cat | ls
+help
 exit
-cat | ls
-cat | ls
-cat | ls
-prueba|prueba|prueba|prueba
+help
 exit
-cat | ls
-cat | ls
+help
+help
+exit
+help
