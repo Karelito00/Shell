@@ -331,10 +331,9 @@ void Parse_Input(char line_input[], Commands_Split_Cond *split_cond){
             }
         }
         if(comillas == 0 && Is_Special(line_input[i]) > 0){
-            if(reading == 0) continue;
-            reading = 0;
-            if(count_words == 0){ //we have to check if the name of command is 'if'
+            if(count_words == 0 && reading != 0){ //we have to check if the name of command is 'if'
                 if(strcmp(word_temp, "if") == 0){
+                    reading = 0;
                     IF cond = processing_if(line_input, i);
                     temp_command = convert_if_to_command(&cond, line_input);
                     Copy_Temp(&temp_command, &split_cond->command_by_cond[split_cond->length_cond]);
@@ -354,7 +353,10 @@ void Parse_Input(char line_input[], Commands_Split_Cond *split_cond){
                     continue;
                 }
             }
-            Copy_To_Line(word_temp, &count_words, &temp_command, &length_word_temp);
+            if(reading != 0){
+                reading = 0;
+                Copy_To_Line(word_temp, &count_words, &temp_command, &length_word_temp);
+            }
             if(line_input[i] != ' '){ //it's special character
                 if(i + 1 == strlen(line_input)){
                     word_temp[length_word_temp] = line_input[i];
