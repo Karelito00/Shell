@@ -24,8 +24,8 @@ void Copy_Temp(Command *temp, Commands_Split_Pipes *split_pipes){
     int length_split = split_pipes->length_pipes;
     split_pipes->length_pipes++;
     Constructor_Command(&(split_pipes->command_by_pipes[length_split]));
-    Copy_To(temp->name, split_pipes->command_by_pipes[length_split].name);
 
+    int not_yet = 0;
     for(int i = 0; i < temp->length_args; i++){
         if(strcmp(temp->args[i], ">") == 0){
             if(i + 1 == temp->length_args){
@@ -59,6 +59,13 @@ void Copy_Temp(Command *temp, Commands_Split_Pipes *split_pipes){
         else{
             split_pipes->command_by_pipes[length_split].length_args++;
             int val = split_pipes->command_by_pipes[length_split].length_args;
+            
+            if(not_yet == 0){
+                split_pipes->command_by_pipes[length_split].name = malloc(sizeof(char) * SIZE);
+                Copy_To(temp->args[i], split_pipes->command_by_pipes[length_split].name);
+                not_yet = 1;
+            }
+
             split_pipes->command_by_pipes[length_split].args[val - 1] = malloc(sizeof(char) * SIZE);
             Copy_To(temp->args[i], split_pipes->command_by_pipes[length_split].args[val - 1]);
         }

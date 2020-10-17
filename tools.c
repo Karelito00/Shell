@@ -8,7 +8,7 @@ char *path_initial;
 void Initial(char *path,int tam){
     path_initial = malloc(tam);
     path_initial = path;
-    //Para crear el archivo file_h en caso de que no exista que va a contener el historial
+    
     FILE *cf = fopen(path_initial, "r");
     if(cf == NULL){
         cf = fopen(path_initial, "w");
@@ -187,8 +187,6 @@ void show_history(int in,int out){
     fscanf(file_h, "%d", &lines_history);
     fgets(history_line, 100, file_h);
 
-    // dup2(out,STDOUT_FILENO);
-
     const int Length_Line = 100;
     char *tmp = malloc(Length_Line);
 
@@ -200,11 +198,7 @@ void show_history(int in,int out){
         strcat(tmp,history_line);
 
         write(out,tmp,strlen(tmp));
-        // printf("%d: ", j + 1);
-        // printf("%s", history_line);
     }
-
-    // dup2(STDOUT_FILENO,out);
 
     if(out > 2)
         close(out);

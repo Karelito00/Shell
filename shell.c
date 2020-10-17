@@ -100,7 +100,9 @@ int execute(Command *command,int in,int out){
     }
 }
 
-int Only_One_Command(Command *command,int in,int out){
+int String_Of_Commands(Commands_Split_Pipes*);
+
+int Only_One_Command(Command *command, int in, int out){
     if(strcmp(command->name, "if") == 0){
         if(command->_if == NULL || command->_then == NULL || command->error == 1){
             printf(Red"La sintaxis del if es incorrecta." RESET "\n");
@@ -206,9 +208,6 @@ int Only_One_Command(Command *command,int in,int out){
 }
 
 int String_Of_Commands(Commands_Split_Pipes *commands_pipes){
-    // int f[2];
-    // if (pipe(f) < 0) 
-    //     exit(1); 
 
     char *temp_out = malloc(TAM_PATH);
     char *temp_in = malloc(TAM_PATH);
@@ -216,15 +215,6 @@ int String_Of_Commands(Commands_Split_Pipes *commands_pipes){
     int in,out;
 
     for(int i = 0;i < commands_pipes->length_pipes;i++){
-        // debug
-        // printf("%d\n",i);
-        // printf("%s ",commands_pipes->command_by_pipes[i].name);
-        // for(int j = 0;j < commands_pipes->command_by_pipes[i].length_args;j++)
-        //     printf("%s ",commands_pipes->command_by_pipes[i].args[j]);
-        // printf("\n");
-
-        // int in = f[0];
-        // int out = fd;
 
         if(i == 0)
             in = -1;

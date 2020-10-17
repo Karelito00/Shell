@@ -1,11 +1,11 @@
 10
-help
+echo karel | | echo karel
+echo file_h | cat | | echo ll
+echo file_h | | cat
+| | |
+&&
+&& karel && lol
+cat < file_h > prueba | cat
 exit
-help
+cat < file_h > prueba | cat
 exit
-help
-exit
-help
-help
-exit
-help
