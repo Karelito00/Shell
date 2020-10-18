@@ -193,7 +193,7 @@ IF processing_if(char line_input[], int pos_if){
             }
             break;
         }
-        if(line_input[i] == '\'' || line_input[i] == '\"'){
+        if(is_a_quote(line_input[i]) > 0){
             if(comillas == 0){
                 if(strcmp(word_temp, "if") == 0){
                     pointer_stack++;
@@ -321,16 +321,24 @@ void Parse_Input(char line_input[], Commands_Split_Cond *split_cond){
     char comillas = 0;
     for(int i = 0; i < strlen(line_input); i++){
         if(line_input[i] == '#' || line_input[i] == '\n') break;
-        if(line_input[i] == '\'' || line_input[i] == '\"'){
+        if(is_a_quote(line_input[i]) > 0){
             if(comillas == 0){
                 if(reading == 1){
                     Copy_To_Line(word_temp, &count_words, &temp_command, &length_word_temp);
                     reading = 0;
                 }
                 comillas = line_input[i];
+                if(comillas == '`'){
+                    word_temp[length_word_temp] = '`';
+                    length_word_temp++;
+                }
                 continue;
             }
             if(comillas == line_input[i]){
+                if(comillas == '`'){
+                    word_temp[length_word_temp] = '`';
+                    length_word_temp++;
+                }
                 comillas = 0;
                 reading = 0;
                 Copy_To_Line(word_temp, &count_words, &temp_command, &length_word_temp);

@@ -6,6 +6,69 @@ const int TAM_PATH = 100;
 
 //////////////////////
 
+Linked_List vars;
+
+/////////////////////
+
+void Show_Global_Vars(){
+    if(vars.length_vars == 0){
+        printf("No hay variables para mostrar\n");
+    }
+    for(int i = 0; i < vars.length_vars; i++){
+        printf("%s=%s\n", vars.arr_var[i].name, vars.arr_var[i].value);
+    }
+}
+
+int Get_Var(char name[]){
+
+    for(int i = 0; i < vars.length_vars; i++){
+        if(strcmp(vars.arr_var[i].name, name) == 0){
+            printf("%s\n", vars.arr_var[i].value);
+            return 0;
+        }
+    }
+    printf("No se encontro ninguna variable con ese nombre.\n");
+    return 1;
+}
+
+int Set_Var(char name[], char value[]){
+    int len = vars.length_vars;
+    for(int i = 0; i < len; i++){
+        if(strcmp(vars.arr_var[i].name, name) == 0){
+            Copy_To(value, vars.arr_var[i].value);
+            return 0;
+        }
+    }
+    Constructor_Global_Var(&vars.arr_var[len]);
+    Copy_To(name, vars.arr_var[len].name);
+    Copy_To(value, vars.arr_var[len].value);
+    vars.length_vars++;
+    return 0;
+}
+
+int Unset_Var(char name[]){
+    int capture = 0;
+    for(int i = 0; i < vars.length_vars; i++){
+        if(capture > 0){
+            if(i + 1 != vars.length_vars)
+                Swap_Vars(&vars.arr_var[i + 1], &vars.arr_var[i]);
+        }
+        else{
+            if(strcmp(vars.arr_var[i].name, name) == 0){
+                capture = 1;
+                if(i + 1 != vars.length_vars)
+                    Swap_Vars(&vars.arr_var[i + 1], &vars.arr_var[i]);
+            }
+        }
+    }
+    if(capture == 0){
+        printf("No existe variable alguna con ese nombre.\n");
+        return 1;
+    }
+    vars.length_vars--;
+    return 0;
+}
+
 int execute_command(Command *command,int in,int out){
     
     if(strcmp(command->name, "true") == 0) return 0;
@@ -74,6 +137,45 @@ int execute(Command *command,int in,int out){
             return EXIT_SUCCESS;
 
         exit(0);
+    }
+    if(strcmp(command->name, "get") == 0){
+        if(command->length_args == 1){
+            printf("Muy pocos argumentos para ejecutar \'get\'.\n");
+            return 1;
+        }
+        int status = Get_Var(command->args[1]);
+        return status;
+    }
+    if(strcmp(command->name, "set") == 0){
+        if(command->length_args == 2){
+            printf("Muy pocos argumentos para ejecutar \'set\'.\n");
+            return 1;
+        }
+        if(command->length_args == 1){
+            Show_Global_Vars();
+            return 0;
+        }
+        char *value = malloc(SIZE);
+        int len = 0;
+        for(int i = 2; i < command->length_args; i++){
+            for(int j = 0; j < strlen(command->args[i]); j++){
+                value[len++] = command->args[i][j];
+            }
+            if(i + 1 != command->length_args)
+                value[len++] = ' ';
+        }
+        value[len] = 0;
+        Set_Var(command->args[1], value);
+        return 0;
+    }
+
+    if(strcmp(command->name, "unset") == 0){
+        if(command->length_args == 1){
+            printf("Muy pocos argumentos para ejecutar \'unset\'.\n");
+            return 1;
+        }
+        int status = Unset_Var(command->args[1]);
+        return status;
     }
     if(strcmp(command->name, "cd") == 0){
         if(command->length_args < 2){
@@ -254,6 +356,7 @@ int main(){
     char *path_initial = malloc(TAM_PATH);
     getcwd(path_initial, TAM_PATH);
     strcat(path_initial,"/file_h");
+    Constructor_Linked_List(&vars);
 
     Initial(path_initial,TAM_PATH); //Create file for history
     while(1){

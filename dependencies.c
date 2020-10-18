@@ -86,6 +86,26 @@ void Constructor_Split_Lines_Dotcomma(Split_Lines_Dotcomma *lines){
     lines->length_lines_splits = 0;
 }
 
+typedef struct Global_Var{
+    char *name;
+    char *value;
+}Global_Var;
+
+typedef struct Linked_List{
+    Global_Var *arr_var;
+    int length_vars;
+}Linked_List;
+
+void Constructor_Global_Var(Global_Var *var){
+    var->name = malloc(SIZE);
+    var->value = malloc(SIZE);
+}
+
+void Constructor_Linked_List(Linked_List *vars){
+    vars->arr_var = malloc(SIZE);
+    vars->length_vars = 0;
+}
+
 char special_characters[] = {' ', '|', '>', '<', '&', ';'};
 
 int Is_Special(char x){
@@ -101,3 +121,12 @@ void Copy_To(char a[], char b[]){ //Copy from a to b
         b[i] = a[i];
     b[strlen(a) + 1] = 0;
 }
+
+char kind_quotes[] = {'\'', '\"', '`'};
+
+int is_a_quote(char x){
+    for(int i = 0; i < strlen(kind_quotes); i++)
+        if(x == kind_quotes[i]) return 1;
+    return 0;
+}
+

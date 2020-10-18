@@ -155,6 +155,10 @@ void Save_History(char *line){
         count++;
         if(line[i] == '\n') break;
     }
+    if(hist[count - 1] != '\n'){
+        hist[count] = '\n';
+        hist[count + 1] = 0;
+    }
     fclose(file_h);
     file_h = fopen(path_initial, "w");
     fprintf(file_h, "%d\n", min(lines_history + 1, 10));
@@ -224,4 +228,9 @@ int Is_Only_Spaces(char line[]){
             return 0;
     }
     return 1;
+}
+
+void Swap_Vars(Global_Var *a, Global_Var *b){
+    Copy_To(a->name, b->name);
+    Copy_To(a->value, b->value);
 }
