@@ -1,11 +1,11 @@
 10
 ls
-cat
-exit
+karel
 ls
 exit
 ls
 exit
+help
+exit
 ls
 exit
-ls | cat

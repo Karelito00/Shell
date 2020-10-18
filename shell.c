@@ -107,7 +107,7 @@ int execute_command(Command *command,int in,int out){
     if(strcmp(command->name, "true") == 0) return 0;
     if(strcmp(command->name, "false") == 0) return 1;
     
-    global_status = -1;
+    global_status = 0;
     int pid_pad = getpid();
     pid_t pid = fork();
     if(pid == 0){
@@ -122,7 +122,6 @@ int execute_command(Command *command,int in,int out){
 
         Is_Runing = 1;
         Global_PID = getpid();
-
         if(command->mod1 == 1){
             int fd = creat(command->output, 0644);
             dup2(fd, STDOUT_FILENO);
@@ -150,9 +149,6 @@ int execute_command(Command *command,int in,int out){
 
             kill(pid_pad, SIGUSR2);
         }
-        else{
-            kill(pid_pad, SIGUSR1);
-        }
         exit(0);
     }
     else{
@@ -164,13 +160,14 @@ int execute_command(Command *command,int in,int out){
             close(out);
         }
     }
-    printf("%d\n", global_status);
     if(global_status == -1){
         printf("\n");
         global_status = 0;
     }
     return global_status;
 }
+
+int String_Of_Commands(Commands_Split_Pipes*);
 
 int execute(Command *command,int in,int out){
     if(in == -1) in = STDIN_FILENO;
@@ -219,7 +216,41 @@ int execute(Command *command,int in,int out){
                 value[len++] = ' ';
         }
         value[len] = 0;
-        Set_Var(command->args[1], value);
+        if(value[len - 1] != '`' || value[0] != '`')
+            Set_Var(command->args[1], value);
+        else{ //qutoes `
+            char *new_value = malloc(SIZE);
+            for(int i = 1; i < len - 1; i++)
+                new_value[i - 1] = value[i];
+            new_value[len - 1] = 0;
+            Commands_Split_Cond split_cond;
+            Constructor_Commands_Split_Cond(&split_cond);
+            Parse_Input(new_value, &split_cond);
+            int status_set = 0; //IF
+            for(int j = 0; j <= split_cond.length_cond; j++){ //iterating for conditions
+                int status = String_Of_Commands(&split_cond.command_by_cond[j]);
+                if(j == split_cond.length_cond){
+                    status_set = status;
+                    continue;
+                }
+                if(j == split_cond.length_cond){
+                    status_set = status;
+                    continue;
+                }
+                if(split_cond.Type_Cond[j] == 0){
+                    if(status == 1){
+                        status_set = 1;
+                        break;
+                    }
+                }
+                else{
+                    if(status == 1){
+                        status_set = 1;
+                        break;
+                    }
+                }
+            }
+        }
         return 0;
     }
 
@@ -261,8 +292,6 @@ int execute(Command *command,int in,int out){
         return execute_command(command,in,out);
     }
 }
-
-int String_Of_Commands(Commands_Split_Pipes*);
 
 int Only_One_Command(Command *command, int in, int out){
     if(strcmp(command->name, "if") == 0){
