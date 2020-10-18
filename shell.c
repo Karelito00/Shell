@@ -9,8 +9,37 @@ const int TAM_PATH = 100;
 List vars;
 int Is_Runing;
 pid_t Global_PID;
+int global_status;
 
 /////////////////////
+
+//Capture signals
+
+void catch(int sig){
+    if(Is_Runing == 1){
+        int status = kill(Global_PID, 2); //Send SIGINT
+        Is_Runing++;
+        return;
+    }
+    else if(Is_Runing == 2){
+        kill(Global_PID, 9);
+        return;
+    }
+}
+
+void tip_status(int sig){
+    switch (sig)
+    {
+    case SIGUSR1:
+        global_status = 0;
+        break;
+    case SIGUSR2:
+        global_status = 1;
+        break;
+    }
+}
+
+//////////////////////
 
 void Show_Global_Vars(){
     if(vars.length_vars == 0){
@@ -71,19 +100,21 @@ int Unset_Var(char name[]){
     return 0;
 }
 
+
+
 int execute_command(Command *command,int in,int out){
     
     if(strcmp(command->name, "true") == 0) return 0;
     if(strcmp(command->name, "false") == 0) return 1;
     
-    int status = -1;
+    global_status = -1;
+    int pid_pad = getpid();
     pid_t pid = fork();
     if(pid == 0){
         dup2(in,STDIN_FILENO);
         dup2(out,STDOUT_FILENO);
         Is_Runing = 1;
         Global_PID = getpid();
-
         if(command->mod1 == 1){
             int fd = creat(command->output, 0644);
             dup2(fd, out);
@@ -102,11 +133,13 @@ int execute_command(Command *command,int in,int out){
 
         if(out > 2)
             close(out);
-
         int cap = execvp(command->name, command->args);
         if(cap < 0){
             ERRORC(command->name);
-            status = 1;
+            kill(pid_pad, SIGUSR2);
+        }
+        else{
+            kill(pid_pad, SIGUSR1);
         }
         exit(0);
     }
@@ -115,12 +148,11 @@ int execute_command(Command *command,int in,int out){
             close(out);
     	wait(&pid);
     }
-    Is_Runing = 0;
-    if(status == -1){
+    if(global_status == -1){
         printf("\n");
-        return 1;
+        global_status = 0;
     }
-    return status;
+    return global_status;
 }
 
 int execute(Command *command,int in,int out){
@@ -357,23 +389,11 @@ int String_Of_Commands(Commands_Split_Pipes *commands_pipes){
     return EXIT_SUCCESS;
 }
 
-//Capture signals
-
-void catch(int sig){
-    if(Is_Runing == 1){
-        int status = kill(Global_PID, 2); //Enviar SIGINT
-        Is_Runing++;
-        return;
-    }
-    else if(Is_Runing == 2){
-        kill(Global_PID, 9);
-        return;
-    }
-}
-
 int main(){
 
     signal(SIGINT, &catch);
+    signal(SIGUSR2, &tip_status);
+    signal(SIGUSR1, &tip_status);
     char *path_initial = malloc(TAM_PATH);
     getcwd(path_initial, TAM_PATH);
     strcat(path_initial,"/file_h");

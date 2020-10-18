@@ -3,6 +3,9 @@
 void general_help(){
     printf("\nIntegrantes: Alben Luis Urquiza Rojas y Karel Diaz Vergara del 212\n\n");
 
+    printf(Red"Importante: Esto es una lista de las cosas que no debes escribir en este shell:"RESET "\n");
+    printf(Red"            No escribir parentesis(), ni llaves{}, ni corchetes[] con el objetivo de evitar un comportamiento inesperado.\n"RESET "\n");
+
     printf(Blue"Funcionalidades:"RESET "\n");
     printf("basic: funcionalidades basicas (3 puntos)\n");
     printf("multi-pipe: multiples tuberias (1 punto)\n");
@@ -46,6 +49,9 @@ void general_help(){
     printf("         Descripcion: Declaracion, eliminacion y lista de variables globales.(0.5 puntos)\n");
 
     printf("\n" Blue "Para mas informacion buscar los detalles de cada una de estas funcionalidades"RESET"\n");
+    printf("help <func>: imprime la ayuda de la funcionalidad func, aqui una lista de las funcionalidades soportadas por el help:\n");
+    
+    
     printf("\nTotal de puntos: 9.5 puntos\n\n");
 
 }
