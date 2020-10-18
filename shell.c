@@ -130,12 +130,12 @@ int execute_command(Command *command,int in,int out){
             dup2(fd, in);
             close(fd);
         }
-
         if(out > 2)
             close(out);
         int cap = execvp(command->name, command->args);
         if(cap < 0){
             ERRORC(command->name);
+            db;
             kill(pid_pad, SIGUSR2);
         }
         else{
@@ -148,6 +148,7 @@ int execute_command(Command *command,int in,int out){
             close(out);
     	wait(&pid);
     }
+    printf("%d\n", global_status);
     if(global_status == -1){
         printf("\n");
         global_status = 0;
@@ -392,8 +393,8 @@ int String_Of_Commands(Commands_Split_Pipes *commands_pipes){
 int main(){
 
     signal(SIGINT, &catch);
-    signal(SIGUSR2, &tip_status);
-    signal(SIGUSR1, &tip_status);
+    signal(SIGUSR2, tip_status);
+    signal(SIGUSR1, tip_status);
     char *path_initial = malloc(TAM_PATH);
     getcwd(path_initial, TAM_PATH);
     strcat(path_initial,"/file_h");
