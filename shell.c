@@ -15,42 +15,53 @@ int execute_command(Command *command,int in,int out){
     pid_t pid = fork();
 
     if(pid == 0){
-        dup2(in,STDIN_FILENO);
-        dup2(out,STDOUT_FILENO);
-
+        if(in > 2){
+            dup2(in,STDIN_FILENO);
+            close(in);
+        }
+        if(out > 2){
+            dup2(out,STDOUT_FILENO);
+            close(out);
+        }
 
         if(command->mod1 == 1){
             int fd = creat(command->output, 0644);
-            dup2(fd, out);
+            dup2(fd, STDOUT_FILENO);
             close(fd);
         }
         if(command->mod2 == 1){
             int fd = open(command->output, O_CREAT | O_WRONLY | O_APPEND, 777);
-            dup2(fd, out);
+            dup2(fd, STDOUT_FILENO);
             close(fd);
         }
         if(command->mod3 == 1){
             int fd = open(command->input, O_RDONLY);
-            dup2(fd, in);
+            dup2(fd, STDIN_FILENO);
             close(fd);
         }
 
-        if(out > 2)
-            close(out);
-
-        // debug
-        // printf("LLEGO1    %d  %d\n",in,out);
         int cap = execvp(command->name, command->args);
         if(cap < 0){
+            int cpy = dup(STDOUT_FILENO);
+
+            dup2(STDERR_FILENO,STDOUT_FILENO);
+
             ERRORC(command->name);
+
+            dup2(cpy,STDOUT_FILENO);
+
             status = 1;
         }
         exit(0);
     }
     else{
-        if(out > 2)
+    	wait(NULL);
+        if(in > 2){
+            close(in);
+        }
+        if(out > 2){
             close(out);
-    	wait(&pid);
+        }
     }
     return status;
 }
@@ -70,7 +81,7 @@ int execute(Command *command,int in,int out){
     
     if(strcmp(command->name, "exit") == 0){
         //if has pipe
-        if(STDIN_FILENO != in && STDOUT_FILENO != out)
+        if(STDIN_FILENO != in || STDOUT_FILENO != out)
             return EXIT_SUCCESS;
 
         exit(0);
@@ -81,7 +92,7 @@ int execute(Command *command,int in,int out){
             return 1;
         }
         //if has pipe
-        if(STDIN_FILENO != in && STDOUT_FILENO != out)
+        if(STDIN_FILENO != in || STDOUT_FILENO != out)
             return EXIT_SUCCESS;
 
         int success = chdir(command->args[1]);
@@ -93,7 +104,13 @@ int execute(Command *command,int in,int out){
     }
     else{
         if(command->error == 1){
+            int cpy = dup(STDOUT_FILENO);
+
+            dup2(STDERR_FILENO,STDOUT_FILENO);
+
             ERRORC(command->name);
+
+            dup2(cpy,STDOUT_FILENO);
             return 1;
         }
         return execute_command(command,in,out);
@@ -206,30 +223,16 @@ int Only_One_Command(Command *command,int in,int out){
 }
 
 int String_Of_Commands(Commands_Split_Pipes *commands_pipes){
-    // int f[2];
-    // if (pipe(f) < 0) 
-    //     exit(1); 
-
     char *temp_out = malloc(TAM_PATH);
     char *temp_in = malloc(TAM_PATH);
 
     int in,out;
 
     for(int i = 0;i < commands_pipes->length_pipes;i++){
-        // debug
-        // printf("%d\n",i);
-        // printf("%s ",commands_pipes->command_by_pipes[i].name);
-        // for(int j = 0;j < commands_pipes->command_by_pipes[i].length_args;j++)
-        //     printf("%s ",commands_pipes->command_by_pipes[i].args[j]);
-        // printf("\n");
-
-        // int in = f[0];
-        // int out = fd;
-
         if(i == 0)
             in = -1;
         else
-            in = open(temp_in,O_RDONLY);
+            in = open(temp_in,O_RDONLY,777);
 
         if(i + 1 == commands_pipes->length_pipes)
             out = -1;
@@ -245,7 +248,7 @@ int String_Of_Commands(Commands_Split_Pipes *commands_pipes){
         }
 
         if(Only_One_Command(&(commands_pipes->command_by_pipes[i]),in,out) == 1){
-            printf("Error en la ejecucion del comando\n");
+            // printf("Error en la ejecucion del comando\n");
             return EXIT_FAILURE;
         }
 
