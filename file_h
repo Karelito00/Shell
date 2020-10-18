@@ -1,7 +1,5 @@
 10
 ls
-exit
-ls
 cat
 exit
 ls
@@ -9,3 +7,5 @@ exit
 ls
 exit
 ls
+exit
+ls | cat

@@ -138,12 +138,6 @@ int execute_command(Command *command,int in,int out){
             dup2(fd, STDIN_FILENO);
             close(fd);
         }
-<<<<<<< HEAD
-        if(out > 2)
-            close(out);
-=======
-
->>>>>>> 466214110399bf40a1f601a63d1b85c71b63da45
         int cap = execvp(command->name, command->args);
         if(cap < 0){
             int cpy = dup(STDOUT_FILENO);
@@ -151,13 +145,9 @@ int execute_command(Command *command,int in,int out){
             dup2(STDERR_FILENO,STDOUT_FILENO);
 
             ERRORC(command->name);
-<<<<<<< HEAD
-            db;
-=======
             
             dup2(cpy,STDOUT_FILENO);
 
->>>>>>> 466214110399bf40a1f601a63d1b85c71b63da45
             kill(pid_pad, SIGUSR2);
         }
         else{
