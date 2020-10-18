@@ -3,6 +3,7 @@
 /////////////////////
 // constant
 const int TAM_PATH = 100;
+const int LEN_OUT = 300;
 
 //////////////////////
 
@@ -215,10 +216,26 @@ int execute(Command *command,int in,int out){
             if(i + 1 != command->length_args)
                 value[len++] = ' ';
         }
+
         value[len] = 0;
         if(value[len - 1] != '`' || value[0] != '`')
             Set_Var(command->args[1], value);
         else{ //qutoes `
+            int fd = dup(STDOUT_FILENO);
+
+            char *temporal_set = malloc(TAM_PATH);
+
+            getcwd(temporal_set,TAM_PATH);
+            strcat(temporal_set,"/.temporal_set");
+            char *num = malloc(5);
+            int_to_string(fd,num,5);
+            strcat(temporal_set,num);
+
+            int nfd = creat(temporal_set,S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+
+            dup2(nfd,STDOUT_FILENO);
+            close(nfd);
+
             char *new_value = malloc(SIZE);
             for(int i = 1; i < len - 1; i++)
                 new_value[i - 1] = value[i];
@@ -250,6 +267,23 @@ int execute(Command *command,int in,int out){
                     }
                 }
             }
+
+            if(status_set == 0){
+                char *val_set = malloc(LEN_OUT);
+
+                int inp = open(temporal_set,O_RDONLY);
+                read(inp,val_set,LEN_OUT);
+                close(inp);
+                Set_Var(command->args[1],val_set);
+            }
+            else{
+                fprintf(stderr,"La operacion \'set\' no fue completada");
+            }
+
+            remove(temporal_set);
+            dup2(fd,STDOUT_FILENO);
+
+            return status_set;
         }
         return 0;
     }
@@ -416,8 +450,7 @@ int String_Of_Commands(Commands_Split_Pipes *commands_pipes){
             getcwd(temp_out,TAM_PATH);
             strcat(temp_out,"/.temporal_output");
             char *num = malloc(5);
-            num[0] = (char)('0' + i);
-            num[1] = '\0';
+            int_to_string(i,num,5);
             strcat(temp_out,num);
 
             out = creat(temp_out,S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
