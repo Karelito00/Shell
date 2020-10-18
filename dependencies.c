@@ -91,17 +91,17 @@ typedef struct Global_Var{
     char *value;
 }Global_Var;
 
-typedef struct Linked_List{
+typedef struct List{
     Global_Var *arr_var;
     int length_vars;
-}Linked_List;
+}List;
 
 void Constructor_Global_Var(Global_Var *var){
     var->name = malloc(SIZE);
     var->value = malloc(SIZE);
 }
 
-void Constructor_Linked_List(Linked_List *vars){
+void Constructor_Linked_List(List *vars){
     vars->arr_var = malloc(SIZE);
     vars->length_vars = 0;
 }
