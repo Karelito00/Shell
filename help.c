@@ -5,6 +5,7 @@ void general_help(){
 
     printf(Red"Importante: Esto es una lista de las cosas que no debes escribir en este shell:"RESET "\n");
     printf(Red"            No escribir parentesis(), ni llaves{}, ni corchetes[] con el objetivo de evitar un comportamiento inesperado.\n"RESET "\n");
+    printf(Red"            Mientras se esta ejecutando el shell no se puede borrar el file_h.\n"RESET "\n");
 
     printf(Blue"Funcionalidades:"RESET "\n");
     printf("basic: funcionalidades basicas (3 puntos)\n");

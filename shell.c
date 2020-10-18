@@ -28,18 +28,6 @@ void catch(int sig){
     }
 }
 
-void tip_status(int sig){
-    switch (sig)
-    {
-    case SIGUSR1:
-        global_status = 0;
-        break;
-    case SIGUSR2:
-        global_status = 1;
-        break;
-    }
-}
-
 //////////////////////
 
 void Show_Global_Vars(){
@@ -109,7 +97,6 @@ int execute_command(Command *command,int in,int out){
     if(strcmp(command->name, "false") == 0) return 1;
     
     global_status = 0;
-    int pid_pad = getpid();
     pid_t pid = fork();
     if(pid == 0){
         if(in > 2){
@@ -147,8 +134,6 @@ int execute_command(Command *command,int in,int out){
             ERRORC(command->name);
             
             dup2(cpy,STDOUT_FILENO);
-
-            kill(pid_pad, SIGUSR2);
         }
         exit(0);
     }
@@ -160,10 +145,6 @@ int execute_command(Command *command,int in,int out){
         if(out > 2){
             close(out);
         }
-    }
-    if(global_status == -1){
-        printf("\n");
-        global_status = 0;
     }
     return global_status;
 }
@@ -274,7 +255,7 @@ int execute(Command *command,int in,int out){
                 int inp = open(temporal_set,O_RDONLY);
                 read(inp,val_set,LEN_OUT);
                 close(inp);
-                Set_Var(command->args[1],val_set);
+                Set_Var(command->args[1], val_set);
             }
             else{
                 fprintf(stderr,"La operacion \'set\' no fue completada");
@@ -457,7 +438,6 @@ int String_Of_Commands(Commands_Split_Pipes *commands_pipes){
         }
 
         if(Only_One_Command(&(commands_pipes->command_by_pipes[i]),in,out) == 1){
-            // printf("Error en la ejecucion del comando\n");
             return EXIT_FAILURE;
         }
 
@@ -475,8 +455,6 @@ int String_Of_Commands(Commands_Split_Pipes *commands_pipes){
 int main(){
 
     signal(SIGINT, &catch);
-    signal(SIGUSR2, tip_status);
-    signal(SIGUSR1, tip_status);
     char *path_initial = malloc(TAM_PATH);
     getcwd(path_initial, TAM_PATH);
     strcat(path_initial,"/file_h");

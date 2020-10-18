@@ -1,11 +1,11 @@
 10
-ls
-karel
-ls
+set
 exit
-ls
+history
+set karel `set hola `ls``
 exit
 help
 exit
 ls
-exit
+karel diazz
+ls karel
