@@ -1,12 +1,5 @@
 #include "parse.c"
 
-/////////////////////
-// constant
-const int TAM_PATH = 100;
-const int LEN_OUT = 300;
-
-//////////////////////
-
 List vars;
 int Is_Runing;
 pid_t Global_PID;
@@ -152,9 +145,6 @@ int execute_command(Command *command,int in,int out){
 int String_Of_Commands(Commands_Split_Pipes*);
 
 int execute(Command *command,int in,int out){
-    if(in == -1) in = STDIN_FILENO;
-    if(out == -1) out = STDOUT_FILENO;
-
     if(strcmp(command->name, "history") == 0){
         show_history(in,out);
         return 0;
@@ -309,6 +299,9 @@ int execute(Command *command,int in,int out){
 }
 
 int Only_One_Command(Command *command, int in, int out){
+    if(in == -1) in = STDIN_FILENO;
+    if(out == -1) out = STDOUT_FILENO;
+
     if(strcmp(command->name, "if") == 0){
         if(command->_if == NULL || command->_then == NULL || command->error == 1){
             printf(Red"La sintaxis del if es incorrecta." RESET "\n");
@@ -455,12 +448,15 @@ int String_Of_Commands(Commands_Split_Pipes *commands_pipes){
 int main(){
 
     signal(SIGINT, &catch);
-    char *path_initial = malloc(TAM_PATH);
+    path_initial = malloc(TAM_PATH);
     getcwd(path_initial, TAM_PATH);
-    strcat(path_initial,"/file_h");
+
+    char *file_h = malloc(TAM_PATH);
+    strcpy(file_h,path_initial);
+    strcat(file_h,"/file_h");
     Constructor_Linked_List(&vars);
 
-    Initial(path_initial,TAM_PATH); //Create file for history
+    Initial(file_h,TAM_PATH); //Create file for history
     while(1){
         printf(Yellow "my-prompt " RESET "$ ");
         //initialize

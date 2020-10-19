@@ -17,6 +17,14 @@
 #define db printf(Red "debug" RESET "\n")
 #define ERRORC(cad) printf(Red "Error to execute \'%s\'" RESET "\n", (cad))
 
+/////////////////////
+// constant
+const int TAM_PATH = 100;
+const int LEN_OUT = 300;
+char *path_initial;
+
+//////////////////////
+
 int min(int a, int b){
     if(a < b) return a;
     return b;

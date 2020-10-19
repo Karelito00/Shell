@@ -67,12 +67,18 @@ int help(Command *input_process,int in,int out){
         printf(Blue"ctrl+c" RESET": Si se presiona \"ctrl+c\" y un proceso esta corriendo, se le manda un SIGINT, en caso de que el proceso rechace\n");
         printf("        esta senal y se presione nuevamente ctrl+c se le mandara SIGKILL con el objetivo de detenerlo.\n");
         printf("Nota: si no hay ningun proceso corriendo, no ocurre nada, y es ignorado el \"ctrl+c\".\n");
+
+        return 0;
     }
     else if(strcmp(param, "true") == 0){
         printf(Blue"true"RESET ": corresponde a la ejecucion de un comando que su exit_status es 0.\n");
+
+        return 0;
     }
     else if(strcmp(param, "false") == 0){
         printf(Blue"false"RESET ": corresponde a la ejecucion de un comando que su exit_status es 1.\n");
+
+        return 0;
     }
     else if(strcmp(param, "if") == 0){
         printf(Blue"if, multi-if"RESET ": nuestro shell tiene la capacidad de procesar condiciones, veamos la estructura de un if:\n");
@@ -83,19 +89,48 @@ int help(Command *input_process,int in,int out){
         printf("pasara a ejecutarse linea_de_comandos2, en caso de que el exit_status de linea_de_comandos1 haya sido\n");
         printf("distinto de 0 entonces se ejecutara linea_de_comandos3 siempre y cuando haya "Blue "else"RESET" en la condicion.\n");
         printf("Nuestro shell soporta el anidamiento de condiciones\n");
+
+        return 0;
     }
     else if(strcmp(param, "cd") == 0){
         printf(Blue"cd"RESET ": Cambia de directorio.\n");
+
+        return 0;
     }
     else if(strcmp(param, "pwd") == 0){
         printf(Blue"pwd"RESET ": Muestra el path del directorio en el que se encuentra el shell.\n");
+
+        return 0;
     }
-    else if(strcmp(param, "cd") == 0){
-        printf(Blue"cd"RESET ": Cambia de directorio.\n");
-    }
+    else if(strcmp(param, "basic") == 0);
+    else if(strcmp(param, "multi-pipe") == 0);
+    else if(strcmp(param, "background") == 0);
+    else if(strcmp(param, "spaces") == 0);
+    else if(strcmp(param, "history") == 0);
+    else if(strcmp(param, "chain") == 0);
+    else if(strcmp(param, "variables") == 0);
+    else if(strcmp(param, "multi-if") == 0);
     else{
-        printf(Red "No se econtro la ayuda para el comando: %s." RESET "\n", param);
+        printf(Red "No se encontro la ayuda para el comando: %s." RESET "\n", param);
         return 1;
     }
+
+    // fprintf(stderr,"LLEGO");
+
+    char *path_help = malloc(TAM_PATH);
+    strcpy(path_help,path_initial);
+    strcat(path_help,"/.help/");
+    strcat(path_help,param);
+
+    int fd = open(path_help,O_CREAT | O_RDONLY);
+
+    char *tmp = malloc(5);
+
+    while(read(fd,tmp,1) > 0){
+        write(out,tmp,1);
+    }
+
+    close(fd);
+
     return 0;
 }

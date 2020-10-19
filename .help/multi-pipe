@@ -1,0 +1,8 @@
+multi-pipe
+
+Consiste en enviar la salida de un comando como entrada de otro comando, asi sucesivamente.
+
+Ej: ls | cat | cat
+    echo zorra | rev | cat
+
+Nota: los comandos 'exit' y 'cd', no funcionaran cuando la linea tenga algun pipe('|').

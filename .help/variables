@@ -1,0 +1,25 @@
+variables
+
+ * Consta de tres comandos 'set', 'get', 'unset'
+ * Después del comando 'set' viene el nombre de la variable. Todo lo que viene a continuación del nombre de la variable es el valor, puede contener
+espacios.
+ * El comando 'set' sin parámetros imprime el nombre de cada variable y a continuación el valor.
+ * El comando 'get <var>' que imprime el valor de la variable
+ * El comando 'get' en caso de no recibir parámetros no hace nada.
+ * El comando 'unset <var>' que elimina una variable de la lista de variables del shell.
+ * El valor de una variable puede ser el resultado de ejecutar un comando con comillas invertidas
+set var `command1 | command2`.
+ * Las comillas invertidas funcionan de la siguiente forma: todo lo que se encuentre dentro de las
+comillas se interpreta como un comando (que puede contener tuberías y todo lo demás) y la salida
+de ese comando pasa a ver el valor de la variable.
+ * Todas las funcionalidades implementadas en el shell funcionan dentro de las comillas
+invertidas.
+ * El comando get se ejecuta correctamente dentro de las comillas.
+
+ Ej: set c abc
+     set a `set b `ls``
+     get a
+     get b
+     set
+     unset b
+
