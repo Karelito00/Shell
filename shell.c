@@ -21,6 +21,10 @@ void catch(int sig){
     }
 }
 
+void status_tip(int sig){
+    global_status = 1;
+}
+
 //////////////////////
 
 void Show_Global_Vars(){
@@ -90,6 +94,7 @@ int execute_command(Command *command,int in,int out){
     if(strcmp(command->name, "false") == 0) return 1;
     
     global_status = 0;
+    int pid_father = getpid();
     pid_t pid = fork();
     if(pid == 0){
         if(in > 2){
@@ -127,6 +132,7 @@ int execute_command(Command *command,int in,int out){
             ERRORC(command->name);
             
             dup2(cpy,STDOUT_FILENO);
+            kill(pid_father, SIGUSR1);
         }
         exit(0);
     }
@@ -298,6 +304,7 @@ int execute(Command *command,int in,int out){
     }
 }
 
+
 int Only_One_Command(Command *command, int in, int out){
     if(in == -1) in = STDIN_FILENO;
     if(out == -1) out = STDOUT_FILENO;
@@ -307,6 +314,7 @@ int Only_One_Command(Command *command, int in, int out){
             printf(Red"La sintaxis del if es incorrecta." RESET "\n");
             return 0;
         }
+
         Commands_Split_Cond split_cond;
         Constructor_Commands_Split_Cond(&split_cond);
         Parse_Input(command->_if, &split_cond);
@@ -409,7 +417,6 @@ int Only_One_Command(Command *command, int in, int out){
 int String_Of_Commands(Commands_Split_Pipes *commands_pipes){
     char *temp_out = malloc(TAM_PATH);
     char *temp_in = malloc(TAM_PATH);
-
     int in,out;
 
     for(int i = 0;i < commands_pipes->length_pipes;i++){

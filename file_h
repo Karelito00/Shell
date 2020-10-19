@@ -1,11 +1,11 @@
 10
-set
+<file_h cat |cat
 exit
-history
-set karel `set hola `ls``
+cat
+exit
+cat | cat
+exit
+ping 192.168.1.100 | cat
 exit
 help
-exit
-ls
-karel diazz
-ls karel
+if karel then hola else ls end
