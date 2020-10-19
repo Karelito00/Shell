@@ -1,0 +1,7 @@
+spaces
+
+Se admiten cualquier cantidad de espacios entre los comandos.
+
+Ej: cd           next folder
+    cd next folder
+          cat    <      salida.txt

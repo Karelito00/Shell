@@ -1,0 +1,20 @@
+  Se pueden ejecutar casi cualquier comando de la consola nativa de linux.
+
+Ej: ls, pwd, cat, echo, cd, rev
+
+  Asi como redirigir la entrada y salida de los comandos ("<", ">", ">>")
+
+Ej: cd < entrada.txt > salida.txt
+
+  Tambien se puede redirigir la entrada y salida de unos comandos a otros
+
+Ej: ls | cat
+    echo aloh | rev > hola.txt
+
+  Luego de la aparicion del caracter "#": no se toma en cuenta lo que halla luego
+
+Ej: cd .. #retrocede a la carpeta anterior
+
+  Con el comando "exit" se termina la ejecucion del programa.
+
+Ej: exit

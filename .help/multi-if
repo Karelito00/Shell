@@ -1,0 +1,8 @@
+mutli-if
+
+* Se permite anidar operadores 'if' uno dentro de otro con varios niveles de profundidad.
+* Cada 'if' tiene su propio 'end'. 
+* Para mayor claridad consulte la ayuda de el 'if'.(help if)
+
+Ej:  if command1 then command2 else if command3 then command4 else command5 end end
+

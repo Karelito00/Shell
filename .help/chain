@@ -1,0 +1,27 @@
+chain
+
+ * Con el operador ';' se pueden ejecutar varios comandos en una sola línea, uno a continuación
+del otro, en el orden en que aparecen.
+ * El operador '&&' permite poner 2 (o más) comandos unidos de forma que, el comando N solo se
+ejecuta si el comando N-1 tiene un exit status satisfactorio (cero). O sea, funciona como el operador
+AND lógico en corto circuito.
+ * En el caso del operador '&&' si el primer comando retorna TRUE (cero) entonces se ejecuta el
+2do y el valor de retorno de la expresión entera es el valor de retorno (exit status) del último
+comando de la cadena. Si el primer comando retorna FALSE (distinto de cero) entonces el 2do
+comando nunca se ejecuta. El valor de retorno de la cadena de comandos es igual al del 1er
+comando.
+ * En el caso del operador '||' funciona como el operador OR lógico en corto circuito. Si el
+primer comando es satisfactorio, no hace falta ejecutar el 2do.Y sólo si el 1er comando “falla” (exit
+status distinto de cero) es que se ejecuta el 2do comando. Siendo el valor de retorno de la cadena, el
+valor de retorno del último comando que se ejecuta
+ * Tambien existen los comandos 'true' y 'false', que simplemente retornan 0 y 1 respectivamente
+
+Ej:  $ command1; command2; command3
+... # se ejecuta command1 el cual imprime su salida
+... # luego se ejecuta el command2 que tambien imprime su salida
+... # y por ultimo el command3
+
+     $ command4 && command5 # si el 1ro falla el 2do no se ejecuta
+     $ command6 || command7 # solo se ejecuta el 2do si el 1ro falla
+     $ command8 && command9 || command10
+

@@ -3,15 +3,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-char *path_initial;
+char *file_his;
 
 void Initial(char *path,int tam){
-    path_initial = malloc(tam);
-    path_initial = path;
+    file_his = malloc(tam);
+    file_his = path;
     
-    FILE *cf = fopen(path_initial, "r");
+    FILE *cf = fopen(file_his, "r");
     if(cf == NULL){
-        cf = fopen(path_initial, "w");
+        cf = fopen(file_his, "w");
         fprintf(cf, "%d\n", 0);
     }
     fclose(cf);
@@ -27,7 +27,7 @@ int Again_Command(Command *input_process, char get_line[]){
     }
     
     if(number == 0) return 0;
-    FILE *file_h = fopen(path_initial, "a+");
+    FILE *file_h = fopen(file_his, "a+");
     int lines_history = 0;
     char *hist = malloc(SIZE);
     fscanf(file_h, "%d", &lines_history);
@@ -133,7 +133,7 @@ int Have_Background(char line[]){
 }
 
 void Save_History(char *line){
-    FILE *file_h = fopen(path_initial, "a+");
+    FILE *file_h = fopen(file_his, "a+");
     char *hist = malloc(SIZE);
     char *file_history = malloc(SIZE);
     int count = 0;
@@ -160,7 +160,7 @@ void Save_History(char *line){
         hist[count + 1] = 0;
     }
     fclose(file_h);
-    file_h = fopen(path_initial, "w");
+    file_h = fopen(file_his, "w");
     fprintf(file_h, "%d\n", min(lines_history + 1, 10));
     fputs(hist, file_h);
     fclose(file_h);
@@ -185,7 +185,7 @@ void int_to_string(int n,char *str,int len){
 }
 
 void show_history(int in,int out){
-    FILE *file_h = fopen(path_initial, "r");
+    FILE *file_h = fopen(file_his, "r");
     char *history_line = malloc(100);
     int lines_history;
     fscanf(file_h, "%d", &lines_history);

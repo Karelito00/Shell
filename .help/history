@@ -1,0 +1,9 @@
+history
+
+  Se muestran los ultimos 10 comandos ejecutados, numerados del 1 al 10. Se puede ejecutar 
+un comando que alla sido ejecutado entre los ultimos 10 con el comando 'again'.
+
+Ej: history
+    again 5
+    again 3
+
