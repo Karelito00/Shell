@@ -1,11 +1,11 @@
 10
-<file_h cat |cat
-exit
-cat
-exit
-cat | cat
-exit
-ping 192.168.1.100 | cat
-exit
-help
-if karel then hola else ls end
+ls
+> a.txt
+> a.txt
+> a.txt
+ls
+> a.txt
+> a.txt
+>a.txt
+ls
+cat | > txt

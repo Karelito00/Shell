@@ -123,7 +123,13 @@ int execute_command(Command *command,int in,int out){
             dup2(fd, STDIN_FILENO);
             close(fd);
         }
-        int cap = execvp(command->name, command->args);
+        int cap = 0;
+        if(command->length_args == 0){
+            cap = 0;
+        }
+        else{
+            cap = execvp(command->name, command->args);
+        }
         if(cap < 0){
             int cpy = dup(STDOUT_FILENO);
 
